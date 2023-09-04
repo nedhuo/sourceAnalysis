@@ -42,7 +42,7 @@ import java.util.Map;
 /** A builder class for setting default structural classes for Glide to use. */
 @SuppressWarnings("PMD.ImmutableField")
 public final class GlideBuilder {
-  private final Map<Class<?>, com.bumptech.glide4110.TransitionOptions<?, ?>> defaultTransitionOptions = new ArrayMap<>();
+  private final Map<Class<?>, TransitionOptions<?, ?>> defaultTransitionOptions = new ArrayMap<>();
   private Engine engine;
   private BitmapPool bitmapPool;
   private ArrayPool arrayPool;
@@ -51,14 +51,14 @@ public final class GlideBuilder {
   private GlideExecutor diskCacheExecutor;
   private DiskCache.Factory diskCacheFactory;
   private MemorySizeCalculator memorySizeCalculator;
-  private com.bumptech.glide4110.manager.ConnectivityMonitorFactory connectivityMonitorFactory;
+  private ConnectivityMonitorFactory connectivityMonitorFactory;
   private int logLevel = Log.INFO;
   private Glide.RequestOptionsFactory defaultRequestOptionsFactory =
       new Glide.RequestOptionsFactory() {
         @NonNull
         @Override
-        public com.bumptech.glide4110.request.RequestOptions build() {
-          return new com.bumptech.glide4110.request.RequestOptions();
+        public RequestOptions build() {
+          return new RequestOptions();
         }
       };
   @Nullable private com.bumptech.glide4110.manager.RequestManagerRetriever.RequestManagerFactory requestManagerFactory;
@@ -214,9 +214,9 @@ public final class GlideBuilder {
   }
 
   /**
-   * Sets the default {@link com.bumptech.glide4110.request.RequestOptions} to use for all loads across the app.
+   * Sets the default {@link RequestOptions} to use for all loads across the app.
    *
-   * <p>Applying additional options with {@link com.bumptech.glide4110.RequestBuilder#apply(com.bumptech.glide4110.request.BaseRequestOptions)} will
+   * <p>Applying additional options with {@link RequestBuilder#apply(com.bumptech.glide4110.request.BaseRequestOptions)} will
    * override defaults set here.
    *
    * @see #setDefaultRequestOptions(Glide.RequestOptionsFactory)
@@ -224,13 +224,13 @@ public final class GlideBuilder {
    * @return This builder.
    */
   @NonNull
-  public GlideBuilder setDefaultRequestOptions(@Nullable final com.bumptech.glide4110.request.RequestOptions requestOptions) {
+  public GlideBuilder setDefaultRequestOptions(@Nullable final RequestOptions requestOptions) {
     return setDefaultRequestOptions(
         new Glide.RequestOptionsFactory() {
           @NonNull
           @Override
-          public com.bumptech.glide4110.request.RequestOptions build() {
-            return requestOptions != null ? requestOptions : new com.bumptech.glide4110.request.RequestOptions();
+          public RequestOptions build() {
+            return requestOptions != null ? requestOptions : new RequestOptions();
           }
         });
   }
@@ -243,7 +243,7 @@ public final class GlideBuilder {
    * of times and memoized. It's not safe to assume that this factory will be called again for every
    * new load.
    *
-   * <p>Applying additional options with {@link com.bumptech.glide4110.RequestBuilder#apply(BaseRequestOptions)} will
+   * <p>Applying additional options with {@link RequestBuilder#apply(BaseRequestOptions)} will
    * override defaults set here.
    *
    * @see #setDefaultRequestOptions(Glide.RequestOptionsFactory)
@@ -255,7 +255,7 @@ public final class GlideBuilder {
   }
 
   /**
-   * Sets the default {@link com.bumptech.glide4110.TransitionOptions} to use when starting a request that will load a
+   * Sets the default {@link TransitionOptions} to use when starting a request that will load a
    * resource with the given {@link Class}.
    *
    * <p>It's preferable but not required for the requested resource class to match the resource
@@ -313,8 +313,8 @@ public final class GlideBuilder {
   }
 
   /**
-   * Sets the {@link com.bumptech.glide4110.manager.ConnectivityMonitorFactory} to use to notify {@link
-   * com.bumptech.glide4110.RequestManager} of connectivity events. If not set {@link
+   * Sets the {@link ConnectivityMonitorFactory} to use to notify {@link
+   * RequestManager} of connectivity events. If not set {@link
    * com.bumptech.glide4110.manager.DefaultConnectivityMonitorFactory} would be used.
    *
    * @param factory The factory to use
@@ -367,18 +367,18 @@ public final class GlideBuilder {
 
   /**
    * If set to {@code true}, allows Glide to re-capture resources that are loaded into {@link
-   * com.bumptech.glide4110.request.target.Target}s which are subsequently de-referenced and garbage
+   * Target}s which are subsequently de-referenced and garbage
    * collected without being cleared.
    *
    * <p>Defaults to {@code false}.
    *
    * <p>Glide's resource re-use system is permissive, which means that's acceptable for callers to
-   * load resources into {@link com.bumptech.glide4110.request.target.Target}s and then never clear the
-   * {@link com.bumptech.glide4110.request.target.Target}. To do so, Glide uses {@link
+   * load resources into {@link Target}s and then never clear the
+   * {@link Target}. To do so, Glide uses {@link
    * java.lang.ref.WeakReference}s to track resources that belong to {@link
-   * com.bumptech.glide4110.request.target.Target}s that haven't yet been cleared. Setting this method
+   * Target}s that haven't yet been cleared. Setting this method
    * to {@code true} allows Glide to also maintain a hard reference to the underlying resource so
-   * that if the {@link com.bumptech.glide4110.request.target.Target} is garbage collected, Glide can
+   * that if the {@link Target} is garbage collected, Glide can
    * return the underlying resource to it's memory cache so that subsequent requests will not
    * unexpectedly re-load the resource from disk or source. As a side affect, it will take the
    * system slightly longer to garbage collect the underlying resource because the weak reference
@@ -387,23 +387,23 @@ public final class GlideBuilder {
    *
    * <p>Leaving this method at the default {@code false} value will allow the platform to garbage
    * collect resources more quickly, but will lead to unexpected memory cache misses if callers load
-   * resources into {@link com.bumptech.glide4110.request.target.Target}s but never clear them.
+   * resources into {@link Target}s but never clear them.
    *
    * <p>If you set this method to {@code true} you <em>must not</em> call {@link Bitmap#recycle()}
    * or mutate any Bitmaps returned by Glide. If this method is set to {@code false}, recycling or
    * mutating Bitmaps is inefficient but safe as long as you do not clear the corresponding {@link
-   * com.bumptech.glide4110.request.target.Target} used to load the {@link Bitmap}. However, if you set
+   * Target} used to load the {@link Bitmap}. However, if you set
    * this method to {@code true} and recycle or mutate any returned {@link Bitmap}s or other mutable
    * resources, Glide may recover those resources and attempt to use them later on, resulting in
    * crashes, graphical corruption or undefined behavior.
    *
    * <p>Regardless of what value this method is set to, it's always good practice to clear {@link
-   * com.bumptech.glide4110.request.target.Target}s when you're done with the corresponding resource.
-   * Clearing {@link com.bumptech.glide4110.request.target.Target}s allows Glide to maximize resource
+   * Target}s when you're done with the corresponding resource.
+   * Clearing {@link Target}s allows Glide to maximize resource
    * re-use, minimize memory overhead and minimize unexpected behavior resulting from edge cases. If
-   * you use {@link com.bumptech.glide4110.RequestManager#clear(com.bumptech.glide4110.request.target.Target)}, calling {@link Bitmap#recycle()} or mutating
+   * you use {@link RequestManager#clear(Target)}, calling {@link Bitmap#recycle()} or mutating
    * {@link Bitmap}s is not only unsafe, it's also totally unnecessary and should be avoided. In all
-   * cases, prefer {@link com.bumptech.glide4110.RequestManager#clear(com.bumptech.glide4110.request.target.Target)} to {@link Bitmap#recycle()}.
+   * cases, prefer {@link RequestManager#clear(Target)} to {@link Bitmap#recycle()}.
    *
    * @return This builder.
    */
@@ -422,8 +422,8 @@ public final class GlideBuilder {
    * <p>Multiple {@link com.bumptech.glide4110.request.RequestListener}s can be added here, in {@link RequestManager} scopes or to
    * individual {@link RequestBuilder}s. {@link com.bumptech.glide4110.request.RequestListener}s are called in the order they're
    * added. Even if an earlier {@link com.bumptech.glide4110.request.RequestListener} returns {@code true} from {@link
-   * com.bumptech.glide4110.request.RequestListener#onLoadFailed(GlideException, Object, com.bumptech.glide4110.request.target.Target, boolean)} or {@link
-   * com.bumptech.glide4110.request.RequestListener#onResourceReady(Object, Object, com.bumptech.glide4110.request.target.Target, DataSource, boolean)}, it will not
+   * com.bumptech.glide4110.request.RequestListener#onLoadFailed(GlideException, Object, Target, boolean)} or {@link
+   * com.bumptech.glide4110.request.RequestListener#onResourceReady(Object, Object, Target, DataSource, boolean)}, it will not
    * prevent subsequent {@link com.bumptech.glide4110.request.RequestListener}s from being called.
    *
    * <p>Because Glide requests can be started for any number of individual resource types, any

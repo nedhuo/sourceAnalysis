@@ -68,16 +68,16 @@ public class RequestManager
 
     @SuppressWarnings("WeakerAccess")
     @Synthetic
-    final com.bumptech.glide4110.manager.Lifecycle lifecycle;
+    final Lifecycle lifecycle;
 
     @GuardedBy("this")
-    private final com.bumptech.glide4110.manager.RequestTracker requestTracker;
+    private final RequestTracker requestTracker;
 
     @GuardedBy("this")
-    private final com.bumptech.glide4110.manager.RequestManagerTreeNode treeNode;
+    private final RequestManagerTreeNode treeNode;
 
     @GuardedBy("this")
-    private final com.bumptech.glide4110.manager.TargetTracker targetTracker = new TargetTracker();
+    private final TargetTracker targetTracker = new TargetTracker();
 
     private final Runnable addSelfToLifecycle =
             new Runnable() {
@@ -87,7 +87,7 @@ public class RequestManager
                 }
             };
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private final com.bumptech.glide4110.manager.ConnectivityMonitor connectivityMonitor;
+    private final ConnectivityMonitor connectivityMonitor;
     // Adding default listeners should be much less common than starting new requests. We want
     // some way of making sure that requests don't mutate our listeners without creating a new copy of
     // the list each time a request is started.
@@ -100,14 +100,14 @@ public class RequestManager
 
     public RequestManager(
             @NonNull Glide glide,
-            @NonNull com.bumptech.glide4110.manager.Lifecycle lifecycle,
-            @NonNull com.bumptech.glide4110.manager.RequestManagerTreeNode treeNode,
+            @NonNull Lifecycle lifecycle,
+            @NonNull RequestManagerTreeNode treeNode,
             @NonNull Context context) {
         this(
                 glide,
                 lifecycle,
                 treeNode,
-                new com.bumptech.glide4110.manager.RequestTracker(),
+                new RequestTracker(),
                 glide.getConnectivityMonitorFactory(),
                 context);
     }
@@ -118,7 +118,7 @@ public class RequestManager
             Glide glide,
             Lifecycle lifecycle,
             RequestManagerTreeNode treeNode,
-            com.bumptech.glide4110.manager.RequestTracker requestTracker,
+            RequestTracker requestTracker,
             ConnectivityMonitorFactory factory,
             Context context) {
         this.glide = glide;
