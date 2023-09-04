@@ -51,5 +51,5 @@ dependencies {
     }
 
     //私人悬浮窗库FloatingX 源码分析
-    compileOnly("com.github.Petterpx:FloatingX:1.3.2")
+    implementation("com.github.Petterpx:FloatingX:1.3.3")
 }

@@ -20,6 +20,7 @@ import com.bumptech.glide4110.load.model.ModelLoader;
 import com.bumptech.glide4110.load.model.ModelLoaderFactory;
 import com.bumptech.glide4110.load.model.ResourceLoader;
 import com.bumptech.glide4110.load.model.UriLoader;
+import com.bumptech.glide4110.request.RequestOptions;
 import com.bumptech.glide4110.util.Util;
 import com.bumptech.glide4110.load.resource.gif.GifDrawable;
 import com.bumptech.glide4110.request.BaseRequestOptions;
@@ -49,15 +50,15 @@ import java.util.concurrent.Executor;
  * A generic class that can handle setting options and staring loads for generic resource types.
  *
  * @param <TranscodeType> The type of resource that will be delivered to the {@link
- *     com.bumptech.glide4110.request.target.Target}.
+ *     Target}.
  */
 // Public API.
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.request.BaseRequestOptions<RequestBuilder<TranscodeType>>
+public class RequestBuilder<TranscodeType> extends BaseRequestOptions<RequestBuilder<TranscodeType>>
     implements Cloneable, ModelTypes<RequestBuilder<TranscodeType>> {
   // Used in generated subclasses
-  protected static final com.bumptech.glide4110.request.RequestOptions DOWNLOAD_ONLY_OPTIONS =
-      new com.bumptech.glide4110.request.RequestOptions()
+  protected static final RequestOptions DOWNLOAD_ONLY_OPTIONS =
+      new RequestOptions()
           .diskCacheStrategy(DiskCacheStrategy.DATA)
           .priority(Priority.LOW)
           .skipMemoryCache(true);
@@ -75,7 +76,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   @Nullable private Object model;
   // model may occasionally be null, so to enforce that load() was called, put a boolean rather
   // than relying on model not to be null.
-  @Nullable private List<com.bumptech.glide4110.request.RequestListener<TranscodeType>> requestListeners;
+  @Nullable private List<RequestListener<TranscodeType>> requestListeners;
   @Nullable private RequestBuilder<TranscodeType> thumbnailBuilder;
   @Nullable private RequestBuilder<TranscodeType> errorBuilder;
   @Nullable private Float thumbSizeMultiplier;
@@ -117,28 +118,28 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   @SuppressWarnings("unchecked")
   // addListener always returns the same instance.
   @SuppressLint("CheckResult")
-  private void initRequestListeners(List<com.bumptech.glide4110.request.RequestListener<Object>> requestListeners) {
-    for (com.bumptech.glide4110.request.RequestListener<Object> listener : requestListeners) {
-      addListener((com.bumptech.glide4110.request.RequestListener<TranscodeType>) listener);
+  private void initRequestListeners(List<RequestListener<Object>> requestListeners) {
+    for (RequestListener<Object> listener : requestListeners) {
+      addListener((RequestListener<TranscodeType>) listener);
     }
   }
 
   /**
    * Applies the given options to the request.
    *
-   * <p>As with {@link com.bumptech.glide4110.request.RequestOptions#apply(com.bumptech.glide4110.request.BaseRequestOptions)}, {@code #apply} only replaces those
-   * values that are explicitly set in the given {@link com.bumptech.glide4110.request.RequestOptions} object. If you need to
+   * <p>As with {@link RequestOptions#apply(BaseRequestOptions)}, {@code #apply} only replaces those
+   * values that are explicitly set in the given {@link RequestOptions} object. If you need to
    * completely reset all previously set options, create a new {@code RequestBuilder} instead of
    * using this method.
    *
-   * @see com.bumptech.glide4110.request.RequestOptions#apply(com.bumptech.glide4110.request.BaseRequestOptions)
+   * @see RequestOptions#apply(BaseRequestOptions)
    * @return This request builder.
    */
   @NonNull
   @CheckResult
   @Override
-  public RequestBuilder<TranscodeType> apply(@NonNull com.bumptech.glide4110.request.BaseRequestOptions<?> requestOptions) {
-    com.bumptech.glide4110.util.Preconditions.checkNotNull(requestOptions);
+  public RequestBuilder<TranscodeType> apply(@NonNull BaseRequestOptions<?> requestOptions) {
+    Preconditions.checkNotNull(requestOptions);
     return super.apply(requestOptions);
   }
 
@@ -155,13 +156,13 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   @CheckResult
   public RequestBuilder<TranscodeType> transition(
       @NonNull com.bumptech.glide4110.TransitionOptions<?, ? super TranscodeType> transitionOptions) {
-    this.transitionOptions = com.bumptech.glide4110.util.Preconditions.checkNotNull(transitionOptions);
+    this.transitionOptions = Preconditions.checkNotNull(transitionOptions);
     isDefaultTransitionOptionsSet = false;
     return this;
   }
 
   /**
-   * Sets a {@link com.bumptech.glide4110.request.RequestListener} to monitor the resource load. It's best to create a single
+   * Sets a {@link RequestListener} to monitor the resource load. It's best to create a single
    * instance of an exception handler per type of request (usually activity/fragment) rather than
    * pass one in per request to avoid some redundant object allocation.
    *
@@ -175,13 +176,13 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   @CheckResult
   @SuppressWarnings("unchecked")
   public RequestBuilder<TranscodeType> listener(
-      @Nullable com.bumptech.glide4110.request.RequestListener<TranscodeType> requestListener) {
+      @Nullable RequestListener<TranscodeType> requestListener) {
     this.requestListeners = null;
     return addListener(requestListener);
   }
 
   /**
-   * Adds a {@link com.bumptech.glide4110.request.RequestListener}. If called multiple times, all passed {@link com.bumptech.glide4110.request.RequestListener
+   * Adds a {@link RequestListener}. If called multiple times, all passed {@link RequestListener
    * listeners} will be called in order.
    *
    * @param requestListener The request listener to use. If {@code null}, this method is a noop.
@@ -190,7 +191,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   @NonNull
   @CheckResult
   public RequestBuilder<TranscodeType> addListener(
-      @Nullable com.bumptech.glide4110.request.RequestListener<TranscodeType> requestListener) {
+      @Nullable RequestListener<TranscodeType> requestListener) {
     if (requestListener != null) {
       if (this.requestListeners == null) {
         this.requestListeners = new ArrayList<>();
@@ -217,8 +218,8 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    *
    * <p>The given {@link RequestBuilder} will start and potentially override a fallback drawable if
    * it's set on this {@link RequestBuilder} via {@link
-   * com.bumptech.glide4110.request.RequestOptions#fallback(Drawable)} or {@link
-   * com.bumptech.glide4110.request.RequestOptions#fallback(int)}.
+   * RequestOptions#fallback(Drawable)} or {@link
+   * RequestOptions#fallback(int)}.
    *
    * @return This {@link RequestBuilder}.
    */
@@ -327,8 +328,8 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * <p>Almost all options will be copied from the original load, including the {@link
    * ModelLoader}, {@link ResourceDecoder},
    * and {@link Transformation}s. However, {@link
-   * com.bumptech.glide4110.request.RequestOptions#placeholder(int)} and {@link
-   * com.bumptech.glide4110.request.RequestOptions#error(int)}, and {@link #listener(com.bumptech.glide4110.request.RequestListener)}
+   * RequestOptions#placeholder(int)} and {@link
+   * RequestOptions#error(int)}, and {@link #listener(RequestListener)}
    * will only be used on the full size load and will not be copied for the thumbnail load.
    *
    * <p>Recursive calls to thumbnail are supported.
@@ -338,7 +339,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    *
    * @see #thumbnail(RequestBuilder)
    * @see #thumbnail(RequestBuilder[])
-   * @param sizeMultiplier The multiplier to apply to the {@link com.bumptech.glide4110.request.target.Target}'s dimensions when loading
+   * @param sizeMultiplier The multiplier to apply to the {@link Target}'s dimensions when loading
    *     the thumbnail.
    * @return This request builder.
    */
@@ -383,7 +384,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * {@link ResourceDecoder} instead of using this method.
    *
    * <p>The {@link DiskCacheStrategy} is set to {@link DiskCacheStrategy#NONE}. Previous calls to
-   * {@link #apply(com.bumptech.glide4110.request.BaseRequestOptions)} or previously applied {@link DiskCacheStrategy}s will be
+   * {@link #apply(BaseRequestOptions)} or previously applied {@link DiskCacheStrategy}s will be
    * overridden by this method. Applying an {@link DiskCacheStrategy} other than {@link
    * DiskCacheStrategy#NONE} after calling this method may result in undefined behavior.
    *
@@ -396,7 +397,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   @CheckResult
   @Override
   public RequestBuilder<TranscodeType> load(@Nullable Bitmap bitmap) {
-    return loadGeneric(bitmap).apply(com.bumptech.glide4110.request.RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE));
+    return loadGeneric(bitmap).apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE));
   }
 
   /**
@@ -409,7 +410,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * instead of using this method.
    *
    * <p>The {@link DiskCacheStrategy} is set to {@link DiskCacheStrategy#NONE}. Previous calls to
-   * {@link #apply(com.bumptech.glide4110.request.BaseRequestOptions)} or previously applied {@link DiskCacheStrategy}s will be
+   * {@link #apply(BaseRequestOptions)} or previously applied {@link DiskCacheStrategy}s will be
    * overridden by this method. Applying an {@link DiskCacheStrategy} other than {@link
    * DiskCacheStrategy#NONE} after calling this method may result in undefined behavior.
    *
@@ -422,7 +423,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   @CheckResult
   @Override
   public RequestBuilder<TranscodeType> load(@Nullable Drawable drawable) {
-    return loadGeneric(drawable).apply(com.bumptech.glide4110.request.RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE));
+    return loadGeneric(drawable).apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE));
   }
 
   /**
@@ -431,11 +432,11 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * <p>Note - this method caches data using only the given String as the cache key. If the data is
    * a Uri outside of your control, or you otherwise expect the data represented by the given String
    * to change without the String identifier changing, Consider using {@link
-   * com.bumptech.glide4110.request.RequestOptions#signature(Key)} to mixin a
+   * RequestOptions#signature(Key)} to mixin a
    * signature you create that identifies the data currently at the given String that will
    * invalidate the cache if that data changes. Alternatively, using {@link
    * DiskCacheStrategy#NONE} and/or {@link
-   * com.bumptech.glide4110.request.RequestOptions#skipMemoryCache(boolean)} may be appropriate.
+   * RequestOptions#skipMemoryCache(boolean)} may be appropriate.
    *
    * @see #load(Object)
    * @param string A file path, or a uri or url handled by {@link
@@ -454,11 +455,11 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * <p>Note - this method caches data at Uris using only the Uri itself as the cache key. The data
    * represented by Uris from some content providers may change without the Uri changing, which
    * means using this method can lead to displaying stale data. Consider using {@link
-   * com.bumptech.glide4110.request.RequestOptions#signature(Key)} to mixin a
+   * RequestOptions#signature(Key)} to mixin a
    * signature you create based on the data at the given Uri that will invalidate the cache if that
    * data changes. Alternatively, using {@link
    * DiskCacheStrategy#NONE} and/or {@link
-   * com.bumptech.glide4110.request.RequestOptions#skipMemoryCache(boolean)} may be appropriate.
+   * RequestOptions#skipMemoryCache(boolean)} may be appropriate.
    *
    * @see #load(Object)
    * @param uri The Uri representing the image. Must be of a type handled by {@link
@@ -477,11 +478,11 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * <p>Note - this method caches data for Files using only the file path itself as the cache key.
    * The data in the File can change so using this method can lead to displaying stale data. If you
    * expect the data in the File to change, Consider using {@link
-   * com.bumptech.glide4110.request.RequestOptions#signature(Key)} to mixin a
+   * RequestOptions#signature(Key)} to mixin a
    * signature you create that identifies the data currently in the File that will invalidate the
    * cache if that data changes. Alternatively, using {@link
    * DiskCacheStrategy#NONE} and/or {@link
-   * com.bumptech.glide4110.request.RequestOptions#skipMemoryCache(boolean)} may be appropriate.
+   * RequestOptions#skipMemoryCache(boolean)} may be appropriate.
    *
    * @see #load(Object)
    * @param file The File containing the image
@@ -505,7 +506,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * increment your version code before each install and you replace a Drawable with different data
    * without changing the Drawable name, you may see inconsistent cached data. To get around this,
    * consider using {@link DiskCacheStrategy#NONE} via {@link
-   * com.bumptech.glide4110.request.RequestOptions#diskCacheStrategy(DiskCacheStrategy)} during
+   * RequestOptions#diskCacheStrategy(DiskCacheStrategy)} during
    * development, and re-enabling the default {@link
    * DiskCacheStrategy#RESOURCE} for release builds.
    *
@@ -516,7 +517,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * still not able to transform all types of resources. Animated {@link Drawable}s cannot be
    * transformed (other than {@link GifDrawable}). To avoid
    * load failures if a {@link Drawable} can't be transformed, use the optional transformation
-   * methods like {@link com.bumptech.glide4110.request.RequestOptions#optionalTransform(Class, Transformation)}.
+   * methods like {@link RequestOptions#optionalTransform(Class, Transformation)}.
    *
    * <p>In some cases converting {@link Drawable}s to {@link Bitmap}s may be inefficient. Use this
    * method, especially in conjunction with {@link Transformation}s with
@@ -529,7 +530,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   @CheckResult
   @Override
   public RequestBuilder<TranscodeType> load(@RawRes @DrawableRes @Nullable Integer resourceId) {
-    return loadGeneric(resourceId).apply(com.bumptech.glide4110.request.RequestOptions.signatureOf(AndroidResourceSignature.obtain(context)));
+    return loadGeneric(resourceId).apply(RequestOptions.signatureOf(AndroidResourceSignature.obtain(context)));
   }
 
   /**
@@ -562,10 +563,10 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   public RequestBuilder<TranscodeType> load(@Nullable byte[] model) {
     RequestBuilder<TranscodeType> result = loadGeneric(model);
     if (!result.isDiskCacheStrategySet()) {
-      result = result.apply(com.bumptech.glide4110.request.RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE));
+      result = result.apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE));
     }
     if (!result.isSkipMemoryCacheSet()) {
-      result = result.apply(com.bumptech.glide4110.request.RequestOptions.skipMemoryCacheOf(true /*skipMemoryCache*/));
+      result = result.apply(RequestOptions.skipMemoryCacheOf(true /*skipMemoryCache*/));
     }
     return result;
   }
@@ -596,42 +597,42 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    *
    * @param target The target to load the resource into.
    * @return The given target.
-   * @see RequestManager#clear(com.bumptech.glide4110.request.target.Target)
+   * @see RequestManager#clear(Target)
    */
   @NonNull
-  public <Y extends com.bumptech.glide4110.request.target.Target<TranscodeType>> Y into(@NonNull Y target) {
-    return into(target, /*targetListener=*/ null, com.bumptech.glide4110.util.Executors.mainThreadExecutor());
+  public <Y extends Target<TranscodeType>> Y into(@NonNull Y target) {
+    return into(target, /*targetListener=*/ null, Executors.mainThreadExecutor());
   }
 
   @NonNull
   @Synthetic
-  <Y extends com.bumptech.glide4110.request.target.Target<TranscodeType>> Y into(
+  <Y extends Target<TranscodeType>> Y into(
       @NonNull Y target,
-      @Nullable com.bumptech.glide4110.request.RequestListener<TranscodeType> targetListener,
+      @Nullable RequestListener<TranscodeType> targetListener,
       Executor callbackExecutor) {
     return into(target, targetListener, /*options=*/ this, callbackExecutor);
   }
 
-  private <Y extends com.bumptech.glide4110.request.target.Target<TranscodeType>> Y into(
+  private <Y extends Target<TranscodeType>> Y into(
       @NonNull Y target,
-      @Nullable com.bumptech.glide4110.request.RequestListener<TranscodeType> targetListener,
-      com.bumptech.glide4110.request.BaseRequestOptions<?> options,
+      @Nullable RequestListener<TranscodeType> targetListener,
+      BaseRequestOptions<?> options,
       Executor callbackExecutor) {
-    com.bumptech.glide4110.util.Preconditions.checkNotNull(target);
+    Preconditions.checkNotNull(target);
     if (!isModelSet) {
       throw new IllegalArgumentException("You must call #load() before calling #into()");
     }
 
-    com.bumptech.glide4110.request.Request request = buildRequest(target, targetListener, options, callbackExecutor);
+    Request request = buildRequest(target, targetListener, options, callbackExecutor);
 
-    com.bumptech.glide4110.request.Request previous = target.getRequest();
+    Request previous = target.getRequest();
     if (request.isEquivalentTo(previous)
         && !isSkipMemoryCacheWithCompletePreviousRequest(options, previous)) {
       // If the request is completed, beginning again will ensure the result is re-delivered,
       // triggering RequestListeners and Targets. If the request is failed, beginning again will
       // restart the request, giving it another chance to complete. If the request is already
       // running, we can let it continue running without interruption.
-      if (!com.bumptech.glide4110.util.Preconditions.checkNotNull(previous).isRunning()) {
+      if (!Preconditions.checkNotNull(previous).isRunning()) {
         // Use the previous request rather than the new one to allow for optimizations like skipping
         // setting placeholders, tracking and un-tracking Targets, and obtaining View dimensions
         // that are done in the individual Request.
@@ -653,7 +654,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
   // because the previous request must also be using skipMemoryCache for the requests to be
   // equivalent. See #2663 for additional context.
   private boolean isSkipMemoryCacheWithCompletePreviousRequest(
-          com.bumptech.glide4110.request.BaseRequestOptions<?> options, com.bumptech.glide4110.request.Request previous) {
+          BaseRequestOptions<?> options, Request previous) {
     return !options.isMemoryCacheable() && previous.isComplete();
   }
 
@@ -662,9 +663,9 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * the view, and frees any resources Glide may have previously loaded into the view so they may be
    * reused.
    *
-   * @see RequestManager#clear(com.bumptech.glide4110.request.target.Target)
+   * @see RequestManager#clear(Target)
    * @param view The view to cancel previous loads for and load the new resource into.
-   * @return The {@link com.bumptech.glide4110.request.target.Target} used to wrap the given {@link
+   * @return The {@link Target} used to wrap the given {@link
    *     ImageView}.
    */
   @NonNull
@@ -672,7 +673,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
     Util.assertMainThread();
     Preconditions.checkNotNull(view);
 
-    com.bumptech.glide4110.request.BaseRequestOptions<?> requestOptions = this;
+    BaseRequestOptions<?> requestOptions = this;
     if (!requestOptions.isTransformationSet()
         && requestOptions.isTransformationAllowed()
         && view.getScaleType() != null) {
@@ -705,56 +706,56 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
         glideContext.buildImageViewTarget(view, transcodeClass),
         /*targetListener=*/ null,
         requestOptions,
-        com.bumptech.glide4110.util.Executors.mainThreadExecutor());
+        Executors.mainThreadExecutor());
   }
 
   /**
    * Returns a future that can be used to do a blocking get on a background thread.
    *
-   * @param width The desired width in pixels, or {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL}. This will be
-   *     overridden by {@link com.bumptech.glide4110.request.RequestOptions#override(int, int)} if
+   * @param width The desired width in pixels, or {@link Target#SIZE_ORIGINAL}. This will be
+   *     overridden by {@link RequestOptions#override(int, int)} if
    *     previously called.
-   * @param height The desired height in pixels, or {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL}. This will be
-   *     overridden by {@link com.bumptech.glide4110.request.RequestOptions#override(int, int)}} if
+   * @param height The desired height in pixels, or {@link Target#SIZE_ORIGINAL}. This will be
+   *     overridden by {@link RequestOptions#override(int, int)}} if
    *     previously called).
-   * @see RequestManager#clear(com.bumptech.glide4110.request.target.Target)
+   * @see RequestManager#clear(Target)
    * @deprecated Use {@link #submit(int, int)} instead.
    */
   @Deprecated
-  public com.bumptech.glide4110.request.FutureTarget<TranscodeType> into(int width, int height) {
+  public FutureTarget<TranscodeType> into(int width, int height) {
     return submit(width, height);
   }
 
   /**
    * Returns a future that can be used to do a blocking get on a background thread.
    *
-   * <p>This method defaults to {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL} for the width and the height. However,
+   * <p>This method defaults to {@link Target#SIZE_ORIGINAL} for the width and the height. However,
    * since the width and height will be overridden by values passed to {@link
-   * com.bumptech.glide4110.request.RequestOptions#override(int, int)}, this method can be used whenever {@link com.bumptech.glide4110.request.RequestOptions}
+   * RequestOptions#override(int, int)}, this method can be used whenever {@link RequestOptions}
    * with override values are applied, or whenever you want to retrieve the image in its original
    * size.
    *
    * @see #submit(int, int)
-   * @see #into(com.bumptech.glide4110.request.target.Target)
+   * @see #into(Target)
    */
   @NonNull
-  public com.bumptech.glide4110.request.FutureTarget<TranscodeType> submit() {
-    return submit(com.bumptech.glide4110.request.target.Target.SIZE_ORIGINAL, com.bumptech.glide4110.request.target.Target.SIZE_ORIGINAL);
+  public FutureTarget<TranscodeType> submit() {
+    return submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
   }
 
   /**
    * Returns a future that can be used to do a blocking get on a background thread.
    *
-   * @param width The desired width in pixels, or {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL}. This will be
-   *     overridden by {@link com.bumptech.glide4110.request.RequestOptions#override(int, int)} if
+   * @param width The desired width in pixels, or {@link Target#SIZE_ORIGINAL}. This will be
+   *     overridden by {@link RequestOptions#override(int, int)} if
    *     previously called.
-   * @param height The desired height in pixels, or {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL}. This will be
-   *     overridden by {@link com.bumptech.glide4110.request.RequestOptions#override(int, int)}} if
+   * @param height The desired height in pixels, or {@link Target#SIZE_ORIGINAL}. This will be
+   *     overridden by {@link RequestOptions#override(int, int)}} if
    *     previously called).
    */
   @NonNull
-  public com.bumptech.glide4110.request.FutureTarget<TranscodeType> submit(int width, int height) {
-    final com.bumptech.glide4110.request.RequestFutureTarget<TranscodeType> target = new RequestFutureTarget<>(width, height);
+  public FutureTarget<TranscodeType> submit(int width, int height) {
+    final RequestFutureTarget<TranscodeType> target = new RequestFutureTarget<>(width, height);
     return into(target, target, Executors.directExecutor());
   }
 
@@ -764,34 +765,34 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * <p>Pre-loading is useful for making sure that resources you are going to to want in the near
    * future are available quickly.
    *
-   * @param width The desired width in pixels, or {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL}. This will be
-   *     overridden by {@link com.bumptech.glide4110.request.RequestOptions#override(int, int)} if
+   * @param width The desired width in pixels, or {@link Target#SIZE_ORIGINAL}. This will be
+   *     overridden by {@link RequestOptions#override(int, int)} if
    *     previously called.
-   * @param height The desired height in pixels, or {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL}. This will be
-   *     overridden by {@link com.bumptech.glide4110.request.RequestOptions#override(int, int)}} if
+   * @param height The desired height in pixels, or {@link Target#SIZE_ORIGINAL}. This will be
+   *     overridden by {@link RequestOptions#override(int, int)}} if
    *     previously called).
-   * @return A {@link com.bumptech.glide4110.request.target.Target} that can be used to cancel the load via {@link
-   *     RequestManager#clear(com.bumptech.glide4110.request.target.Target)}.
+   * @return A {@link Target} that can be used to cancel the load via {@link
+   *     RequestManager#clear(Target)}.
    * @see ListPreloader
    */
   @NonNull
-  public com.bumptech.glide4110.request.target.Target<TranscodeType> preload(int width, int height) {
-    final com.bumptech.glide4110.request.target.PreloadTarget<TranscodeType> target = PreloadTarget.obtain(requestManager, width, height);
+  public Target<TranscodeType> preload(int width, int height) {
+    final PreloadTarget<TranscodeType> target = PreloadTarget.obtain(requestManager, width, height);
     return into(target);
   }
 
   /**
-   * Preloads the resource into the cache using {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL} as the target width and
-   * height. Equivalent to calling {@link #preload(int, int)} with {@link com.bumptech.glide4110.request.target.Target#SIZE_ORIGINAL} as
+   * Preloads the resource into the cache using {@link Target#SIZE_ORIGINAL} as the target width and
+   * height. Equivalent to calling {@link #preload(int, int)} with {@link Target#SIZE_ORIGINAL} as
    * the width and height.
    *
-   * @return A {@link com.bumptech.glide4110.request.target.Target} that can be used to cancel the load via {@link
-   *     RequestManager#clear(com.bumptech.glide4110.request.target.Target)}
+   * @return A {@link Target} that can be used to cancel the load via {@link
+   *     RequestManager#clear(Target)}
    * @see #preload(int, int)
    */
   @NonNull
-  public com.bumptech.glide4110.request.target.Target<TranscodeType> preload() {
-    return preload(com.bumptech.glide4110.request.target.Target.SIZE_ORIGINAL, com.bumptech.glide4110.request.target.Target.SIZE_ORIGINAL);
+  public Target<TranscodeType> preload() {
+    return preload(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
   }
 
   /**
@@ -801,11 +802,11 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
    * @param target The Target that will receive the cache File when the load completes
    * @param <Y> The type of Target.
    * @return The given Target.
-   * @deprecated Use {@link RequestManager#downloadOnly()} and {@link #into(com.bumptech.glide4110.request.target.Target)}.
+   * @deprecated Use {@link RequestManager#downloadOnly()} and {@link #into(Target)}.
    */
   @Deprecated
   @CheckResult
-  public <Y extends com.bumptech.glide4110.request.target.Target<File>> Y downloadOnly(@NonNull Y target) {
+  public <Y extends Target<File>> Y downloadOnly(@NonNull Y target) {
     return getDownloadOnlyRequest().into(target);
   }
 
@@ -846,10 +847,10 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
     }
   }
 
-  private com.bumptech.glide4110.request.Request buildRequest(
-      com.bumptech.glide4110.request.target.Target<TranscodeType> target,
-      @Nullable com.bumptech.glide4110.request.RequestListener<TranscodeType> targetListener,
-      com.bumptech.glide4110.request.BaseRequestOptions<?> requestOptions,
+  private Request buildRequest(
+      Target<TranscodeType> target,
+      @Nullable RequestListener<TranscodeType> targetListener,
+      BaseRequestOptions<?> requestOptions,
       Executor callbackExecutor) {
     return buildRequestRecursive(
         /*requestLock=*/ new Object(),
@@ -864,26 +865,26 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
         callbackExecutor);
   }
 
-  private com.bumptech.glide4110.request.Request buildRequestRecursive(
+  private Request buildRequestRecursive(
       Object requestLock,
-      com.bumptech.glide4110.request.target.Target<TranscodeType> target,
-      @Nullable com.bumptech.glide4110.request.RequestListener<TranscodeType> targetListener,
-      @Nullable com.bumptech.glide4110.request.RequestCoordinator parentCoordinator,
-      com.bumptech.glide4110.TransitionOptions<?, ? super TranscodeType> transitionOptions,
+      Target<TranscodeType> target,
+      @Nullable RequestListener<TranscodeType> targetListener,
+      @Nullable RequestCoordinator parentCoordinator,
+      TransitionOptions<?, ? super TranscodeType> transitionOptions,
       Priority priority,
       int overrideWidth,
       int overrideHeight,
-      com.bumptech.glide4110.request.BaseRequestOptions<?> requestOptions,
+      BaseRequestOptions<?> requestOptions,
       Executor callbackExecutor) {
 
     // Build the ErrorRequestCoordinator first if necessary so we can update parentCoordinator.
-    com.bumptech.glide4110.request.ErrorRequestCoordinator errorRequestCoordinator = null;
+    ErrorRequestCoordinator errorRequestCoordinator = null;
     if (errorBuilder != null) {
       errorRequestCoordinator = new ErrorRequestCoordinator(requestLock, parentCoordinator);
       parentCoordinator = errorRequestCoordinator;
     }
 
-    com.bumptech.glide4110.request.Request mainRequest =
+    Request mainRequest =
         buildThumbnailRequestRecursive(
             requestLock,
             target,
@@ -907,7 +908,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
       errorOverrideHeight = requestOptions.getOverrideHeight();
     }
 
-    com.bumptech.glide4110.request.Request errorRequest =
+    Request errorRequest =
         errorBuilder.buildRequestRecursive(
             requestLock,
             target,
@@ -923,16 +924,16 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
     return errorRequestCoordinator;
   }
 
-  private com.bumptech.glide4110.request.Request buildThumbnailRequestRecursive(
+  private Request buildThumbnailRequestRecursive(
       Object requestLock,
-      com.bumptech.glide4110.request.target.Target<TranscodeType> target,
-      com.bumptech.glide4110.request.RequestListener<TranscodeType> targetListener,
-      @Nullable com.bumptech.glide4110.request.RequestCoordinator parentCoordinator,
-      com.bumptech.glide4110.TransitionOptions<?, ? super TranscodeType> transitionOptions,
+      Target<TranscodeType> target,
+      RequestListener<TranscodeType> targetListener,
+      @Nullable RequestCoordinator parentCoordinator,
+      TransitionOptions<?, ? super TranscodeType> transitionOptions,
       Priority priority,
       int overrideWidth,
       int overrideHeight,
-      com.bumptech.glide4110.request.BaseRequestOptions<?> requestOptions,
+      BaseRequestOptions<?> requestOptions,
       Executor callbackExecutor) {
     if (thumbnailBuilder != null) {
       // Recursive case: contains a potentially recursive thumbnail request builder.
@@ -964,9 +965,9 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
         thumbOverrideHeight = requestOptions.getOverrideHeight();
       }
 
-      com.bumptech.glide4110.request.ThumbnailRequestCoordinator coordinator =
-          new com.bumptech.glide4110.request.ThumbnailRequestCoordinator(requestLock, parentCoordinator);
-      com.bumptech.glide4110.request.Request fullRequest =
+      ThumbnailRequestCoordinator coordinator =
+          new ThumbnailRequestCoordinator(requestLock, parentCoordinator);
+      Request fullRequest =
           obtainRequest(
               requestLock,
               target,
@@ -980,7 +981,7 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
               callbackExecutor);
       isThumbnailBuilt = true;
       // Recursively generate thumbnail requests.
-      com.bumptech.glide4110.request.Request thumbRequest =
+      Request thumbRequest =
           thumbnailBuilder.buildRequestRecursive(
               requestLock,
               target,
@@ -997,9 +998,9 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
       return coordinator;
     } else if (thumbSizeMultiplier != null) {
       // Base case: thumbnail multiplier generates a thumbnail request, but cannot recurse.
-      com.bumptech.glide4110.request.ThumbnailRequestCoordinator coordinator =
+      ThumbnailRequestCoordinator coordinator =
           new ThumbnailRequestCoordinator(requestLock, parentCoordinator);
-      com.bumptech.glide4110.request.Request fullRequest =
+      Request fullRequest =
           obtainRequest(
               requestLock,
               target,
@@ -1011,10 +1012,10 @@ public class RequestBuilder<TranscodeType> extends com.bumptech.glide4110.reques
               overrideWidth,
               overrideHeight,
               callbackExecutor);
-      com.bumptech.glide4110.request.BaseRequestOptions<?> thumbnailOptions =
+      BaseRequestOptions<?> thumbnailOptions =
           requestOptions.clone().sizeMultiplier(thumbSizeMultiplier);
 
-      com.bumptech.glide4110.request.Request thumbnailRequest =
+      Request thumbnailRequest =
           obtainRequest(
               requestLock,
               target,
