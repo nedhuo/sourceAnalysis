@@ -58,7 +58,7 @@ import com.bumptech.glide4110.Glide
  *
  *   3.1 只有在主线程调用的Glide.with()才会在当前页面添加空白Fragment进行生命周期监听
  */
-class MainActivity : AppCompatActivity() {
+class MainActivity private constructor(): AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)

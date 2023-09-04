@@ -57,11 +57,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @see Glide#with(Context)
  */
 public class RequestManager
-        implements ComponentCallbacks2, LifecycleListener, ModelTypes<com.bumptech.glide4110.RequestBuilder<Drawable>> {
-    private static final com.bumptech.glide4110.request.RequestOptions DECODE_TYPE_BITMAP = com.bumptech.glide4110.request.RequestOptions.decodeTypeOf(Bitmap.class).lock();
-    private static final com.bumptech.glide4110.request.RequestOptions DECODE_TYPE_GIF = com.bumptech.glide4110.request.RequestOptions.decodeTypeOf(GifDrawable.class).lock();
-    private static final com.bumptech.glide4110.request.RequestOptions DOWNLOAD_ONLY_OPTIONS =
-            com.bumptech.glide4110.request.RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.DATA).priority(Priority.LOW).skipMemoryCache(true);
+        implements ComponentCallbacks2, LifecycleListener, ModelTypes<RequestBuilder<Drawable>> {
+    private static final RequestOptions DECODE_TYPE_BITMAP = RequestOptions.decodeTypeOf(Bitmap.class).lock();
+    private static final RequestOptions DECODE_TYPE_GIF = RequestOptions.decodeTypeOf(GifDrawable.class).lock();
+    private static final RequestOptions DOWNLOAD_ONLY_OPTIONS =
+            RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.DATA).priority(Priority.LOW).skipMemoryCache(true);
 
     protected final Glide glide;
     protected final Context context;
@@ -91,10 +91,10 @@ public class RequestManager
     // Adding default listeners should be much less common than starting new requests. We want
     // some way of making sure that requests don't mutate our listeners without creating a new copy of
     // the list each time a request is started.
-    private final CopyOnWriteArrayList<com.bumptech.glide4110.request.RequestListener<Object>> defaultRequestListeners;
+    private final CopyOnWriteArrayList<RequestListener<Object>> defaultRequestListeners;
 
     @GuardedBy("this")
-    private com.bumptech.glide4110.request.RequestOptions requestOptions;
+    private RequestOptions requestOptions;
 
     private boolean pauseAllRequestsOnTrimMemoryModerate;
 
@@ -140,7 +140,8 @@ public class RequestManager
             //子线程中 发送Handler，添加自身到Lifecycle
             mainHandler.post(addSelfToLifecycle);
         } else {
-            //主线程直接添加自身到Lifecycle
+            //主线程直接添加自身到Lifecycle lifecycle是空白Fragment的Lifecycle 空白Fragment生命周期发生变化
+            //便会触发RequestManager内的对应方法
             lifecycle.addListener(this);
         }
         lifecycle.addListener(connectivityMonitor);
@@ -152,25 +153,25 @@ public class RequestManager
         glide.registerRequestManager(this);
     }
 
-    protected synchronized void setRequestOptions(@NonNull com.bumptech.glide4110.request.RequestOptions toSet) {
+    protected synchronized void setRequestOptions(@NonNull RequestOptions toSet) {
         requestOptions = toSet.clone().autoClone();
     }
 
-    private synchronized void updateRequestOptions(@NonNull com.bumptech.glide4110.request.RequestOptions toUpdate) {
+    private synchronized void updateRequestOptions(@NonNull RequestOptions toUpdate) {
         requestOptions = requestOptions.apply(toUpdate);
     }
 
     /**
-     * Updates the default {@link com.bumptech.glide4110.request.RequestOptions} for all loads started with this request manager with
-     * the given {@link com.bumptech.glide4110.request.RequestOptions}.
+     * Updates the default {@link RequestOptions} for all loads started with this request manager with
+     * the given {@link RequestOptions}.
      *
-     * <p>The {@link com.bumptech.glide4110.request.RequestOptions} provided here are applied on top of those provided via {@link
-     * GlideBuilder#setDefaultRequestOptions(com.bumptech.glide4110.request.RequestOptions)}. If there are conflicts, the options
+     * <p>The {@link RequestOptions} provided here are applied on top of those provided via {@link
+     * GlideBuilder#setDefaultRequestOptions(RequestOptions)}. If there are conflicts, the options
      * applied here will win. Note that this method does not mutate options provided to {@link
-     * GlideBuilder#setDefaultRequestOptions(com.bumptech.glide4110.request.RequestOptions)}.
+     * GlideBuilder#setDefaultRequestOptions(RequestOptions)}.
      *
      * <p>Multiple sets of options can be applied. If there are conflicts the last {@link
-     * com.bumptech.glide4110.request.RequestOptions} applied will win.
+     * RequestOptions} applied will win.
      *
      * <p>The modified options will only be applied to loads started after this method is called.
      *
@@ -179,51 +180,51 @@ public class RequestManager
      */
     @NonNull
     public synchronized RequestManager applyDefaultRequestOptions(
-            @NonNull com.bumptech.glide4110.request.RequestOptions requestOptions) {
+            @NonNull RequestOptions requestOptions) {
         updateRequestOptions(requestOptions);
         return this;
     }
 
     /**
-     * Replaces the default {@link com.bumptech.glide4110.request.RequestOptions} for all loads started with this request manager
-     * with the given {@link com.bumptech.glide4110.request.RequestOptions}.
+     * Replaces the default {@link RequestOptions} for all loads started with this request manager
+     * with the given {@link RequestOptions}.
      *
-     * <p>The {@link com.bumptech.glide4110.request.RequestOptions} provided here replace those that have been previously provided
-     * via this method, {@link GlideBuilder#setDefaultRequestOptions(com.bumptech.glide4110.request.RequestOptions)}, and {@link
-     * #applyDefaultRequestOptions(com.bumptech.glide4110.request.RequestOptions)}.
+     * <p>The {@link RequestOptions} provided here replace those that have been previously provided
+     * via this method, {@link GlideBuilder#setDefaultRequestOptions(RequestOptions)}, and {@link
+     * #applyDefaultRequestOptions(RequestOptions)}.
      *
-     * <p>Subsequent calls to {@link #applyDefaultRequestOptions(com.bumptech.glide4110.request.RequestOptions)} will not mutate the
-     * {@link com.bumptech.glide4110.request.RequestOptions} provided here. Instead the manager will create a clone of these options
+     * <p>Subsequent calls to {@link #applyDefaultRequestOptions(RequestOptions)} will not mutate the
+     * {@link RequestOptions} provided here. Instead the manager will create a clone of these options
      * and mutate the clone.
      *
      * @return This request manager.
-     * @see #applyDefaultRequestOptions(com.bumptech.glide4110.request.RequestOptions)
+     * @see #applyDefaultRequestOptions(RequestOptions)
      */
     @NonNull
     public synchronized RequestManager setDefaultRequestOptions(
-            @NonNull com.bumptech.glide4110.request.RequestOptions requestOptions) {
+            @NonNull RequestOptions requestOptions) {
         setRequestOptions(requestOptions);
         return this;
     }
 
     /**
-     * Adds a default {@link com.bumptech.glide4110.request.RequestListener} that will be added to every request started with this
+     * Adds a default {@link RequestListener} that will be added to every request started with this
      * {@link RequestManager}.
      *
-     * <p>Multiple {@link com.bumptech.glide4110.request.RequestListener}s can be added here, in {@link RequestManager} scopes or to
-     * individual {@link com.bumptech.glide4110.RequestBuilder}s. {@link com.bumptech.glide4110.request.RequestListener}s are called in the order they're
-     * added. Even if an earlier {@link com.bumptech.glide4110.request.RequestListener} returns {@code true} from {@link
-     * com.bumptech.glide4110.request.RequestListener#onLoadFailed(GlideException, Object, com.bumptech.glide4110.request.target.Target, boolean)} or {@link
-     * com.bumptech.glide4110.request.RequestListener#onResourceReady(Object, Object, com.bumptech.glide4110.request.target.Target, DataSource, boolean)}, it will not
-     * prevent subsequent {@link com.bumptech.glide4110.request.RequestListener}s from being called.
+     * <p>Multiple {@link RequestListener}s can be added here, in {@link RequestManager} scopes or to
+     * individual {@link com.bumptech.glide4110.RequestBuilder}s. {@link RequestListener}s are called in the order they're
+     * added. Even if an earlier {@link RequestListener} returns {@code true} from {@link
+     * RequestListener#onLoadFailed(GlideException, Object, Target, boolean)} or {@link
+     * RequestListener#onResourceReady(Object, Object, Target, DataSource, boolean)}, it will not
+     * prevent subsequent {@link RequestListener}s from being called.
      *
      * <p>Because Glide requests can be started for any number of individual resource types, any
      * listener added here has to accept any generic resource type in {@link
-     * com.bumptech.glide4110.request.RequestListener#onResourceReady(Object, Object, com.bumptech.glide4110.request.target.Target, DataSource, boolean)}. If you must base
+     * RequestListener#onResourceReady(Object, Object, Target, DataSource, boolean)}. If you must base
      * the behavior of the listener on the resource type, you will need to use {@code instanceof} to
      * do so. It's not safe to cast resource types without first checking with {@code instanceof}.
      */
-    public RequestManager addDefaultRequestListener(com.bumptech.glide4110.request.RequestListener<Object> requestListener) {
+    public RequestManager addDefaultRequestListener(RequestListener<Object> requestListener) {
         defaultRequestListeners.add(requestListener);
         return this;
     }
@@ -345,6 +346,7 @@ public class RequestManager
     }
 
     /**
+     * 空白Fragment生命周期回调——onStart
      * Lifecycle callback that registers for connectivity events (if the
      * android.permission.ACCESS_NETWORK_STATE permission is present) and restarts failed or paused
      * requests.
@@ -356,6 +358,7 @@ public class RequestManager
     }
 
     /**
+     * 空白Fragment生命周期回调——onStop
      * Lifecycle callback that unregisters for connectivity events (if the
      * android.permission.ACCESS_NETWORK_STATE permission is present) and pauses in progress loads.
      */
@@ -366,6 +369,7 @@ public class RequestManager
     }
 
     /**
+     * 空白Fragment生命周期回调——onDestroy
      * Lifecycle callback that cancels all in progress requests and clears and recycles resources for
      * all completed requests.
      */
