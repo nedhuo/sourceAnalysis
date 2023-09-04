@@ -19,11 +19,11 @@ final class DefaultConnectivityMonitor implements ConnectivityMonitor {
   private final Context context;
 
   @SuppressWarnings("WeakerAccess")
-  @com.bumptech.glide4110.util.Synthetic
+  @Synthetic
   final ConnectivityListener listener;
 
   @SuppressWarnings("WeakerAccess")
-  @com.bumptech.glide4110.util.Synthetic
+  @Synthetic
   boolean isConnected;
 
   private boolean isRegistered;
@@ -49,6 +49,9 @@ final class DefaultConnectivityMonitor implements ConnectivityMonitor {
     this.listener = listener;
   }
 
+  /**
+   *
+   */
   private void register() {
     if (isRegistered) {
       return;
@@ -102,11 +105,17 @@ final class DefaultConnectivityMonitor implements ConnectivityMonitor {
     return networkInfo != null && networkInfo.isConnected();
   }
 
+  /**
+   * 空白Fragment onStart时调用
+   */
   @Override
   public void onStart() {
     register();
   }
 
+  /**
+   * 空白Fragment onStop时调用
+   */
   @Override
   public void onStop() {
     unregister();

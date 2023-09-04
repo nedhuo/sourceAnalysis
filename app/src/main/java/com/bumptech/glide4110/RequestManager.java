@@ -176,7 +176,7 @@ public class RequestManager
      * <p>The modified options will only be applied to loads started after this method is called.
      *
      * @return This request manager.
-     * @see com.bumptech.glide4110.RequestBuilder#apply(BaseRequestOptions)
+     * @see RequestBuilder#apply(BaseRequestOptions)
      */
     @NonNull
     public synchronized RequestManager applyDefaultRequestOptions(
@@ -212,7 +212,7 @@ public class RequestManager
      * {@link RequestManager}.
      *
      * <p>Multiple {@link RequestListener}s can be added here, in {@link RequestManager} scopes or to
-     * individual {@link com.bumptech.glide4110.RequestBuilder}s. {@link RequestListener}s are called in the order they're
+     * individual {@link RequestBuilder}s. {@link RequestListener}s are called in the order they're
      * added. Even if an earlier {@link RequestListener} returns {@code true} from {@link
      * RequestListener#onLoadFailed(GlideException, Object, Target, boolean)} or {@link
      * RequestListener#onResourceReady(Object, Object, Target, DataSource, boolean)}, it will not
@@ -395,7 +395,7 @@ public class RequestManager
      */
     @NonNull
     @CheckResult
-    public com.bumptech.glide4110.RequestBuilder<Bitmap> asBitmap() {
+    public RequestBuilder<Bitmap> asBitmap() {
         return as(Bitmap.class).apply(DECODE_TYPE_BITMAP);
     }
 
