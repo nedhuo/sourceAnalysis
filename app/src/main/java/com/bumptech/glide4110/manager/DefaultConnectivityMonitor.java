@@ -38,7 +38,7 @@ final class DefaultConnectivityMonitor implements ConnectivityMonitor {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
               Log.d(TAG, "connectivity changed, isConnected: " + isConnected);
             }
-
+            //1. 更新网络状态
             listener.onConnectivityChanged(isConnected);
           }
         }
@@ -106,7 +106,7 @@ final class DefaultConnectivityMonitor implements ConnectivityMonitor {
   }
 
   /**
-   * 空白Fragment onStart时调用
+   * 空白Fragment onStart时调用 onStart时 注册网络监听
    */
   @Override
   public void onStart() {
@@ -114,7 +114,7 @@ final class DefaultConnectivityMonitor implements ConnectivityMonitor {
   }
 
   /**
-   * 空白Fragment onStop时调用
+   * 空白Fragment onStop时调用 onStop时 移除网络监听
    */
   @Override
   public void onStop() {

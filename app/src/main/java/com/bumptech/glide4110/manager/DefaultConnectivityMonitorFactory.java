@@ -29,6 +29,7 @@ public class DefaultConnectivityMonitorFactory implements ConnectivityMonitorFac
               ? "ACCESS_NETWORK_STATE permission granted, registering connectivity monitor"
               : "ACCESS_NETWORK_STATE permission missing, cannot register connectivity monitor");
     }
+    //1. 有网络权限 添加网络监听
     return hasPermission
         ? new DefaultConnectivityMonitor(context, listener)
         : new NullConnectivityMonitor();

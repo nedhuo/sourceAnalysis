@@ -76,6 +76,9 @@ public class RequestManager
     @GuardedBy("this")
     private final RequestManagerTreeNode treeNode;
 
+    /**
+     * RequestTracker负责管理所有Request TargetTracker负责管理ImageViewTarget
+     */
     @GuardedBy("this")
     private final TargetTracker targetTracker = new TargetTracker();
 
@@ -126,7 +129,7 @@ public class RequestManager
         this.treeNode = treeNode;
         this.requestTracker = requestTracker;
         this.context = context;
-
+        //1. 网络监视器
         connectivityMonitor =
                 factory.build(
                         context.getApplicationContext(),
@@ -136,6 +139,8 @@ public class RequestManager
         // In that case we cannot risk synchronously pausing or resuming requests, so we hack around the
         // issue by delaying adding ourselves as a lifecycle listener by posting to the main thread.
         // This should be entirely safe.
+        //2. 添加RequestManager自身到空白Fragment的lifecycle 空白Fragment生命周期触发会触发RequestManager
+        //中对应的生命周期
         if (Util.isOnBackgroundThread()) {
             //子线程中 发送Handler，添加自身到Lifecycle
             mainHandler.post(addSelfToLifecycle);
@@ -350,10 +355,15 @@ public class RequestManager
      * Lifecycle callback that registers for connectivity events (if the
      * android.permission.ACCESS_NETWORK_STATE permission is present) and restarts failed or paused
      * requests.
+     * RequestTracker负责管理所有Request TargetTracker负责管理ImageViewTarget
+     * resumeRequests() 负责吊起当前 RequestTracker 保存的请求
+     * targetTracker 负责生命周期的传递给ImageViewTarget
      */
     @Override
     public synchronized void onStart() {
+        //1. 负责吊起当前RequestManager中RequestTracker中保存的请求
         resumeRequests();
+        //2. 通过TargetTracker传递生命周期给ImageViewTarget
         targetTracker.onStart();
     }
 
@@ -714,6 +724,9 @@ public class RequestManager
     public void onConfigurationChanged(Configuration newConfig) {
     }
 
+    /**
+     * DefaultConnectivityMonitor 网络注册回调
+     */
     private class RequestManagerConnectivityListener
             implements ConnectivityMonitor.ConnectivityListener {
         @GuardedBy("RequestManager.this")
@@ -725,6 +738,7 @@ public class RequestManager
 
         @Override
         public void onConnectivityChanged(boolean isConnected) {
+            //1. 网络连接触发重新请求
             if (isConnected) {
                 synchronized (RequestManager.this) {
                     requestTracker.restartRequests();

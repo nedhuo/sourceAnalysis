@@ -17,4 +17,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "sourceAnalysis"
 include(":app")
+include(":floatingx")
  
