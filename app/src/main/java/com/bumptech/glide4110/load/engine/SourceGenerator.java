@@ -6,6 +6,8 @@ import androidx.annotation.Nullable;
 import com.bumptech.glide4110.load.DataSource;
 import com.bumptech.glide4110.load.Encoder;
 import com.bumptech.glide4110.load.Key;
+import com.bumptech.glide4110.load.data.DataFetcher;
+import com.bumptech.glide4110.load.model.ModelLoader;
 import com.bumptech.glide4110.util.LogTime;
 import com.bumptech.glide4110.util.Synthetic;
 
@@ -52,7 +54,9 @@ class SourceGenerator implements com.bumptech.glide4110.load.engine.DataFetcherG
     loadData = null;
     boolean started = false;
     while (!started && hasNextModelLoader()) {
+      //1. 此处拿String类型链接举例 loadData为 LoadData<>(url, new HttpUrlFetcher(url, timeout))
       loadData = helper.getLoadData().get(loadDataListIndex++);
+      //2. 则根据1 此处loadData.fetcher为HttpUrlFetcher dataSource DataSource.REMOTE
       if (loadData != null
           && (helper.getDiskCacheStrategy().isDataCacheable(loadData.fetcher.getDataSource())
               || helper.hasLoadPath(loadData.fetcher.getDataClass()))) {
@@ -63,10 +67,10 @@ class SourceGenerator implements com.bumptech.glide4110.load.engine.DataFetcherG
     return started;
   }
 
-  private void startNextLoad(final com.bumptech.glide4110.load.model.ModelLoader.LoadData<?> toStart) {
+  private void startNextLoad(final ModelLoader.LoadData<?> toStart) {
     loadData.fetcher.loadData(
         helper.getPriority(),
-        new com.bumptech.glide4110.load.data.DataFetcher.DataCallback<Object>() {
+        new DataFetcher.DataCallback<Object>() {
           @Override
           public void onDataReady(@Nullable Object data) {
             if (isCurrentRequest(toStart)) {

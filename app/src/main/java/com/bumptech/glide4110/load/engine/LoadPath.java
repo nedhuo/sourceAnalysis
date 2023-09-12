@@ -76,7 +76,7 @@ public class LoadPath<Data, ResourceType, Transcode> {
       DecodePath<Data, ResourceType, Transcode> path = decodePaths.get(i);
       try {
         result = path.decode(rewinder, width, height, options, decodeCallback);
-      } catch (com.bumptech.glide4110.load.engine.GlideException e) {
+      } catch (GlideException e) {
         exceptions.add(e);
       }
       if (result != null) {

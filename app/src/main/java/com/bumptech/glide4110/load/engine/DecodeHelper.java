@@ -5,6 +5,7 @@ import com.bumptech.glide4110.load.Key;
 import com.bumptech.glide4110.load.Options;
 import com.bumptech.glide4110.load.ResourceEncoder;
 import com.bumptech.glide4110.load.Transformation;
+import com.bumptech.glide4110.load.model.ModelLoader;
 import com.bumptech.glide4110.load.resource.UnitTransformation;
 import com.bumptech.glide4110.GlideContext;
 import com.bumptech.glide4110.Priority;
@@ -20,7 +21,7 @@ import java.util.Map.Entry;
 
 final class DecodeHelper<Transcode> {
 
-  private final List<com.bumptech.glide4110.load.model.ModelLoader.LoadData<?>> loadData = new ArrayList<>();
+  private final List<ModelLoader.LoadData<?>> loadData = new ArrayList<>();
   private final List<Key> cacheKeys = new ArrayList<>();
 
   private com.bumptech.glide4110.GlideContext glideContext;
@@ -181,16 +182,16 @@ final class DecodeHelper<Transcode> {
     return glideContext.getRegistry().getResultEncoder(resource);
   }
 
-  List<com.bumptech.glide4110.load.model.ModelLoader<File, ?>> getModelLoaders(File file)
+  List<ModelLoader<File, ?>> getModelLoaders(File file)
       throws com.bumptech.glide4110.Registry.NoModelLoaderAvailableException {
     return glideContext.getRegistry().getModelLoaders(file);
   }
 
   boolean isSourceKey(Key key) {
-    List<com.bumptech.glide4110.load.model.ModelLoader.LoadData<?>> loadData = getLoadData();
+    List<ModelLoader.LoadData<?>> loadData = getLoadData();
     //noinspection ForLoopReplaceableByForEach to improve perf
     for (int i = 0, size = loadData.size(); i < size; i++) {
-      com.bumptech.glide4110.load.model.ModelLoader.LoadData<?> current = loadData.get(i);
+      ModelLoader.LoadData<?> current = loadData.get(i);
       if (current.sourceKey.equals(key)) {
         return true;
       }
@@ -198,15 +199,22 @@ final class DecodeHelper<Transcode> {
     return false;
   }
 
-  List<com.bumptech.glide4110.load.model.ModelLoader.LoadData<?>> getLoadData() {
+  /**
+   * 这个方法是有点复杂的
+   * @return
+   */
+  List<ModelLoader.LoadData<?>> getLoadData() {
     if (!isLoadDataSet) {
       isLoadDataSet = true;
       loadData.clear();
-      List<com.bumptech.glide4110.load.model.ModelLoader<Object, ?>> modelLoaders = glideContext.getRegistry().getModelLoaders(model);
+      //1. 在Glide的构造方法最后一步就是创建了GlideContext registry也是在Glide的构造方法中构建的 append()方法添加了许多类型
+      //
+      List<ModelLoader<Object, ?>> modelLoaders = glideContext.getRegistry().getModelLoaders(model);
       //noinspection ForLoopReplaceableByForEach to improve perf
       for (int i = 0, size = modelLoaders.size(); i < size; i++) {
-        com.bumptech.glide4110.load.model.ModelLoader<Object, ?> modelLoader = modelLoaders.get(i);
-        com.bumptech.glide4110.load.model.ModelLoader.LoadData<?> current = modelLoader.buildLoadData(model, width, height, options);
+        ModelLoader<Object, ?> modelLoader = modelLoaders.get(i);
+        //2. 如果图片加载使用String链接类型的URL 那么就会使用LoadData<>(url, new HttpUrlFetcher(url, timeout))（至于String是如何与HttpUrlGlideUrl映射的）
+        ModelLoader.LoadData<?> current = modelLoader.buildLoadData(model, width, height, options);
         if (current != null) {
           loadData.add(current);
         }
@@ -219,10 +227,10 @@ final class DecodeHelper<Transcode> {
     if (!isCacheKeysSet) {
       isCacheKeysSet = true;
       cacheKeys.clear();
-      List<com.bumptech.glide4110.load.model.ModelLoader.LoadData<?>> loadData = getLoadData();
+      List<ModelLoader.LoadData<?>> loadData = getLoadData();
       //noinspection ForLoopReplaceableByForEach to improve perf
       for (int i = 0, size = loadData.size(); i < size; i++) {
-        com.bumptech.glide4110.load.model.ModelLoader.LoadData<?> data = loadData.get(i);
+        ModelLoader.LoadData<?> data = loadData.get(i);
         if (!cacheKeys.contains(data.sourceKey)) {
           cacheKeys.add(data.sourceKey);
         }

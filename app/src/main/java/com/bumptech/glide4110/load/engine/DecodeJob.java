@@ -44,7 +44,7 @@ class DecodeJob<R>
         Poolable {
   private static final String TAG = "DecodeJob";
 
-  private final com.bumptech.glide4110.load.engine.DecodeHelper<R> decodeHelper = new com.bumptech.glide4110.load.engine.DecodeHelper<>();
+  private final DecodeHelper<R> decodeHelper = new DecodeHelper<>();
   private final List<Throwable> throwables = new ArrayList<>();
   private final StateVerifier stateVerifier = StateVerifier.newInstance();
   private final DiskCacheProvider diskCacheProvider;
@@ -58,7 +58,7 @@ class DecodeJob<R>
   private EngineKey loadKey;
   private int width;
   private int height;
-  private com.bumptech.glide4110.load.engine.DiskCacheStrategy diskCacheStrategy;
+  private DiskCacheStrategy diskCacheStrategy;
   private Options options;
   private Callback<R> callback;
   private int order;
@@ -75,7 +75,7 @@ class DecodeJob<R>
   private DataSource currentDataSource;
   private com.bumptech.glide4110.load.data.DataFetcher<?> currentFetcher;
 
-  private volatile com.bumptech.glide4110.load.engine.DataFetcherGenerator currentGenerator;
+  private volatile DataFetcherGenerator currentGenerator;
   private volatile boolean isCallbackNotified;
   private volatile boolean isCancelled;
 
@@ -211,7 +211,7 @@ class DecodeJob<R>
 
   public void cancel() {
     isCancelled = true;
-    com.bumptech.glide4110.load.engine.DataFetcherGenerator local = currentGenerator;
+    DataFetcherGenerator local = currentGenerator;
     if (local != null) {
       local.cancel();
     }
@@ -274,6 +274,7 @@ class DecodeJob<R>
     switch (runReason) {
       case INITIALIZE:
         stage = getNextStage(Stage.INITIALIZE);
+        //默认会获取到 SourceGenerator(decodeHelper, this)
         currentGenerator = getNextGenerator();
         runGenerators();
         break;
@@ -288,14 +289,15 @@ class DecodeJob<R>
     }
   }
 
-  private com.bumptech.glide4110.load.engine.DataFetcherGenerator getNextGenerator() {
+  private DataFetcherGenerator getNextGenerator() {
     switch (stage) {
       case RESOURCE_CACHE:
-        return new com.bumptech.glide4110.load.engine.ResourceCacheGenerator(decodeHelper, this);
+        return new ResourceCacheGenerator(decodeHelper, this);
       case DATA_CACHE:
-        return new com.bumptech.glide4110.load.engine.DataCacheGenerator(decodeHelper, this);
+        return new DataCacheGenerator(decodeHelper, this);
       case SOURCE:
-        return new com.bumptech.glide4110.load.engine.SourceGenerator(decodeHelper, this);
+        //如果未配置缓存策略的话 默认走source
+        return new SourceGenerator(decodeHelper, this);
       case FINISHED:
         return null;
       default:
@@ -307,6 +309,7 @@ class DecodeJob<R>
     currentThread = Thread.currentThread();
     startFetchTime = LogTime.getLogTime();
     boolean isStarted = false;
+    //runwrapper 中已经设置了currentGenerator 此处的startNext 为SourceGenerator的startNext
     while (!isCancelled
         && currentGenerator != null
         && !(isStarted = currentGenerator.startNext())) {
@@ -329,7 +332,7 @@ class DecodeJob<R>
 
   private void notifyFailed() {
     setNotifiedOrThrow();
-    com.bumptech.glide4110.load.engine.GlideException e = new com.bumptech.glide4110.load.engine.GlideException("Failed to load resource", new ArrayList<>(throwables));
+    GlideException e = new GlideException("Failed to load resource", new ArrayList<>(throwables));
     callback.onLoadFailed(e);
     onLoadFailed();
   }
@@ -375,9 +378,17 @@ class DecodeJob<R>
     callback.reschedule(this);
   }
 
+  /**
+   * 图片网络请求成功后的回调
+   * @param sourceKey The id of the loaded data.
+   * @param data The loaded data, or null if the load failed.
+   * @param fetcher The data fetcher we attempted to load from.
+   * @param dataSource The data source we were loading from.
+   * @param attemptedKey The key we were loading data from (may be an alternate).
+   */
   @Override
   public void onDataFetcherReady(
-          Key sourceKey, Object data, com.bumptech.glide4110.load.data.DataFetcher<?> fetcher, DataSource dataSource, Key attemptedKey) {
+          Key sourceKey, Object data, DataFetcher<?> fetcher, DataSource dataSource, Key attemptedKey) {
     this.currentSourceKey = sourceKey;
     this.currentData = data;
     this.currentFetcher = fetcher;
@@ -400,7 +411,7 @@ class DecodeJob<R>
   public void onDataFetcherFailed(
           Key attemptedKey, Exception e, com.bumptech.glide4110.load.data.DataFetcher<?> fetcher, DataSource dataSource) {
     fetcher.cleanup();
-    com.bumptech.glide4110.load.engine.GlideException exception = new com.bumptech.glide4110.load.engine.GlideException("Fetching data failed", e);
+    GlideException exception = new GlideException("Fetching data failed", e);
     exception.setLoggingDetails(attemptedKey, dataSource, fetcher.getDataClass());
     throwables.add(exception);
     if (Thread.currentThread() != currentThread) {
@@ -426,7 +437,7 @@ class DecodeJob<R>
     Resource<R> resource = null;
     try {
       resource = decodeFromData(currentFetcher, currentData, currentDataSource);
-    } catch (com.bumptech.glide4110.load.engine.GlideException e) {
+    } catch (GlideException e) {
       e.setLoggingDetails(currentAttemptingKey, currentDataSource);
       throwables.add(e);
     }
@@ -438,14 +449,14 @@ class DecodeJob<R>
   }
 
   private void notifyEncodeAndRelease(Resource<R> resource, DataSource dataSource) {
-    if (resource instanceof com.bumptech.glide4110.load.engine.Initializable) {
+    if (resource instanceof Initializable) {
       ((Initializable) resource).initialize();
     }
 
     Resource<R> result = resource;
-    com.bumptech.glide4110.load.engine.LockedResource<R> lockedResource = null;
+    LockedResource<R> lockedResource = null;
     if (deferredEncodeManager.hasResourceToEncode()) {
-      lockedResource = com.bumptech.glide4110.load.engine.LockedResource.obtain(resource);
+      lockedResource = LockedResource.obtain(resource);
       result = lockedResource;
     }
 
@@ -467,7 +478,7 @@ class DecodeJob<R>
   }
 
   private <Data> Resource<R> decodeFromData(
-          DataFetcher<?> fetcher, Data data, DataSource dataSource) throws com.bumptech.glide4110.load.engine.GlideException {
+          DataFetcher<?> fetcher, Data data, DataSource dataSource) throws GlideException {
     try {
       if (data == null) {
         return null;
@@ -485,7 +496,7 @@ class DecodeJob<R>
 
   @SuppressWarnings("unchecked")
   private <Data> Resource<R> decodeFromFetcher(Data data, DataSource dataSource)
-      throws com.bumptech.glide4110.load.engine.GlideException {
+      throws GlideException {
     LoadPath<Data, ?, R> path = decodeHelper.getLoadPath((Class<Data>) data.getClass());
     return runLoadPath(data, dataSource, path);
   }
@@ -518,7 +529,7 @@ class DecodeJob<R>
 
   private <Data, ResourceType> Resource<R> runLoadPath(
       Data data, DataSource dataSource, LoadPath<Data, ResourceType, R> path)
-      throws com.bumptech.glide4110.load.engine.GlideException {
+      throws GlideException {
     Options options = getOptionsWithHardwareConfig(dataSource);
     DataRewinder<Data> rewinder = glideContext.getRegistry().getRewinder(data);
     try {
@@ -553,7 +564,7 @@ class DecodeJob<R>
     return stateVerifier;
   }
 
-  @com.bumptech.glide4110.util.Synthetic
+  @Synthetic
   @NonNull
   <Z> Resource<Z> onResourceDecoded(DataSource dataSource, @NonNull Resource<Z> decoded) {
     @SuppressWarnings("unchecked")
@@ -589,11 +600,11 @@ class DecodeJob<R>
       final Key key;
       switch (encodeStrategy) {
         case SOURCE:
-          key = new com.bumptech.glide4110.load.engine.DataCacheKey(currentSourceKey, signature);
+          key = new DataCacheKey(currentSourceKey, signature);
           break;
         case TRANSFORMED:
           key =
-              new com.bumptech.glide4110.load.engine.ResourceCacheKey(
+              new ResourceCacheKey(
                   decodeHelper.getArrayPool(),
                   currentSourceKey,
                   signature,
@@ -607,7 +618,7 @@ class DecodeJob<R>
           throw new IllegalArgumentException("Unknown strategy: " + encodeStrategy);
       }
 
-      com.bumptech.glide4110.load.engine.LockedResource<Z> lockedResult = com.bumptech.glide4110.load.engine.LockedResource.obtain(transformed);
+      LockedResource<Z> lockedResult = LockedResource.obtain(transformed);
       deferredEncodeManager.init(key, encoder, lockedResult);
       result = lockedResult;
     }
@@ -674,17 +685,17 @@ class DecodeJob<R>
   private static class DeferredEncodeManager<Z> {
     private Key key;
     private ResourceEncoder<Z> encoder;
-    private com.bumptech.glide4110.load.engine.LockedResource<Z> toEncode;
+    private LockedResource<Z> toEncode;
 
     @Synthetic
     DeferredEncodeManager() {}
 
     // We just need the encoder and resource type to match, which this will enforce.
     @SuppressWarnings("unchecked")
-    <X> void init(Key key, ResourceEncoder<X> encoder, com.bumptech.glide4110.load.engine.LockedResource<X> toEncode) {
+    <X> void init(Key key, ResourceEncoder<X> encoder, LockedResource<X> toEncode) {
       this.key = key;
       this.encoder = (ResourceEncoder<Z>) encoder;
-      this.toEncode = (com.bumptech.glide4110.load.engine.LockedResource<Z>) toEncode;
+      this.toEncode = (LockedResource<Z>) toEncode;
     }
 
     void encode(DiskCacheProvider diskCacheProvider, Options options) {
@@ -692,7 +703,7 @@ class DecodeJob<R>
       try {
         diskCacheProvider
             .getDiskCache()
-            .put(key, new com.bumptech.glide4110.load.engine.DataCacheWriter<>(encoder, toEncode, options));
+            .put(key, new DataCacheWriter<>(encoder, toEncode, options));
       } finally {
         toEncode.unlock();
         GlideTrace.endSection();

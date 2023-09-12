@@ -54,7 +54,9 @@ public class HttpUrlFetcher implements DataFetcher<InputStream> {
       @NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
     long startTime = LogTime.getLogTime();
     try {
+      //1. 通过HttpUrlConnection 获取到inputStream
       InputStream result = loadDataWithRedirects(glideUrl.toURL(), 0, null, glideUrl.getHeaders());
+      //2. 刚才从SourceGenerator进来的 此处回调回去
       callback.onDataReady(result);
     } catch (IOException e) {
       if (Log.isLoggable(TAG, Log.DEBUG)) {
@@ -68,6 +70,15 @@ public class HttpUrlFetcher implements DataFetcher<InputStream> {
     }
   }
 
+  /**
+   * 网络访问的地方 通过HttpUrlConnection 获取到inputStream
+   * @param url
+   * @param redirects
+   * @param lastUrl
+   * @param headers
+   * @return
+   * @throws IOException
+   */
   private InputStream loadDataWithRedirects(
       URL url, int redirects, URL lastUrl, Map<String, String> headers) throws IOException {
     if (redirects >= MAXIMUM_REDIRECTS) {
