@@ -24,6 +24,8 @@ internal const val FX_GRAVITY_BOTTOM = 0x00000003
  * build().toControl().init(this@MainActivity)
  *
  * }
+ *
+ * 接收者类型函数 ScopeHelper.Builder.() -> T： obj 函数内以ScopeHelper作为this去构建该函数
  */
 @JvmSynthetic
 inline fun <T> createFx(crossinline obj: ScopeHelper.Builder.() -> T) =

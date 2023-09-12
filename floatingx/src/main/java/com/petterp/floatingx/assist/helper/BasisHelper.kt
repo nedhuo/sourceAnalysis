@@ -106,6 +106,10 @@ open class BasisHelper {
         fxAnimation?.cancelAnimation()
     }
 
+    /**
+     * 悬浮窗View的设置参数 建造者模式
+     * Builder内部配置完参数后 赋给 BasicHelper中的各项参数
+     */
     abstract class Builder<T, B : BasisHelper> {
         @LayoutRes
         private var layoutId: Int = 0

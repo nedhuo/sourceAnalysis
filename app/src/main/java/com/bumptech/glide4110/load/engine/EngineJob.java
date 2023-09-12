@@ -22,14 +22,16 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * 一个类，它通过为图片添加和删除加载过程回调并在加载完成时通知回调来管理加载
  * A class that manages a load by adding and removing callbacks for for the load and notifying
  * callbacks when the load completes.
+ * 一个用来管理图片加载的类 通过添加和删除回调来管理加载
  */
-class EngineJob<R> implements com.bumptech.glide4110.load.engine.DecodeJob.Callback<R>, Poolable {
+class EngineJob<R> implements DecodeJob.Callback<R>, Poolable {
   private static final EngineResourceFactory DEFAULT_FACTORY = new EngineResourceFactory();
 
   @SuppressWarnings("WeakerAccess")
-  @com.bumptech.glide4110.util.Synthetic
+  @Synthetic
   final ResourceCallbacksAndExecutors cbs = new ResourceCallbacksAndExecutors();
 
   private final StateVerifier stateVerifier = StateVerifier.newInstance();

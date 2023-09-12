@@ -149,6 +149,8 @@ public class RequestManager
             //便会触发RequestManager内的对应方法
             lifecycle.addListener(this);
         }
+        //3. 添加网络监听器 注意 RequestManager的生命周期监听与网络绑定的生命周期监听是同级的
+        // 而ImageViewTarget的生命周期监听是在RequestManager的生命周期监听中调用的
         lifecycle.addListener(connectivityMonitor);
 
         defaultRequestListeners =

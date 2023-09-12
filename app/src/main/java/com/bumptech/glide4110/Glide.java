@@ -183,6 +183,7 @@ public class Glide implements ComponentCallbacks2 {
           getAnnotationGeneratedGlideModules(context.getApplicationContext());
       synchronized (Glide.class) {
         if (glide == null) {
+          //1.检查并且初始化Glide对象
           checkAndInitializeGlide(context, annotationGeneratedModule);
         }
       }
@@ -284,6 +285,7 @@ public class Glide implements ComponentCallbacks2 {
         annotationGeneratedModule != null
             ? annotationGeneratedModule.getRequestManagerFactory()
             : null;
+
     builder.setRequestManagerFactory(factory);
     for (GlideModule module : manifestModules) {
       module.applyOptions(applicationContext, builder);
@@ -291,6 +293,7 @@ public class Glide implements ComponentCallbacks2 {
     if (annotationGeneratedModule != null) {
       annotationGeneratedModule.applyOptions(applicationContext, builder);
     }
+    //通过GlideBuilder创建Glide
     Glide glide = builder.build(applicationContext);
     for (GlideModule module : manifestModules) {
       try {

@@ -38,7 +38,7 @@ import java.util.Map;
  *     resource.
  */
 class DecodeJob<R>
-    implements com.bumptech.glide4110.load.engine.DataFetcherGenerator.FetcherReadyCallback,
+    implements DataFetcherGenerator.FetcherReadyCallback,
         Runnable,
         Comparable<DecodeJob<?>>,
         Poolable {
@@ -227,14 +227,14 @@ class DecodeJob<R>
     GlideTrace.beginSectionFormat("DecodeJob#run(model=%s)", model);
     // Methods in the try statement can invalidate currentFetcher, so set a local variable here to
     // ensure that the fetcher is cleaned up either way.
-    com.bumptech.glide4110.load.data.DataFetcher<?> localFetcher = currentFetcher;
+    DataFetcher<?> localFetcher = currentFetcher;
     try {
       if (isCancelled) {
         notifyFailed();
         return;
       }
       runWrapped();
-    } catch (com.bumptech.glide4110.load.engine.CallbackException e) {
+    } catch (CallbackException e) {
       // If a callback not controlled by Glide throws an exception, we should avoid the Glide
       // specific debug logic below.
       throw e;

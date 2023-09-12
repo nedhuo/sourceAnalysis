@@ -560,7 +560,7 @@ public final class GlideBuilder {
     } else {
       defaultRequestListeners = Collections.unmodifiableList(defaultRequestListeners);
     }
-
+    //创建RequestManagerRetriever
     com.bumptech.glide4110.manager.RequestManagerRetriever requestManagerRetriever =
         new com.bumptech.glide4110.manager.RequestManagerRetriever(requestManagerFactory);
 
