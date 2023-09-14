@@ -54,14 +54,6 @@ public class DecodePath<DataType, ResourceType, Transcode> {
 
     /**
      * 将网络请求的流转成图片类型 并回调出去
-     *
-     * @param rewinder
-     * @param width
-     * @param height
-     * @param options
-     * @param callback
-     * @return
-     * @throws GlideException
      */
     public Resource<Transcode> decode(DataRewinder<DataType> rewinder, int width,
                                       int height, @NonNull Options options,
@@ -85,6 +77,9 @@ public class DecodePath<DataType, ResourceType, Transcode> {
         }
     }
 
+    /**
+     * 解析资源
+     */
     @NonNull
     private Resource<ResourceType> decodeResourceWithList(
             DataRewinder<DataType> rewinder,
@@ -92,7 +87,7 @@ public class DecodePath<DataType, ResourceType, Transcode> {
             int height,
             @NonNull Options options,
             List<Throwable> exceptions)
-            throws com.bumptech.glide4110.load.engine.GlideException {
+            throws GlideException {
         Resource<ResourceType> result = null;
         //noinspection ForLoopReplaceableByForEach to improve perf
         for (int i = 0, size = decoders.size(); i < size; i++) {
@@ -101,7 +96,7 @@ public class DecodePath<DataType, ResourceType, Transcode> {
                 DataType data = rewinder.rewindAndGet();
                 if (decoder.handles(data, options)) {
                     data = rewinder.rewindAndGet();
-                    //StreamBitmapDecoder.decode()方法
+                    //StreamBitmapDecoder.decode()方法 将InputStream转成Bitmap
                     result = decoder.decode(data, width, height, options);
                 }
                 // Some decoders throw unexpectedly. If they do, we shouldn't fail the entire load path, but

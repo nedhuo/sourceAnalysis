@@ -33,6 +33,9 @@ public class StreamBitmapDecoder implements ResourceDecoder<InputStream, Bitmap>
         return downsampler.handles(source);
     }
 
+    /**
+     * 将InputStream转成Bitmap
+     */
     @Override
     public Resource<Bitmap> decode(
             @NonNull InputStream source, int width, int height, @NonNull Options options)
@@ -62,6 +65,7 @@ public class StreamBitmapDecoder implements ResourceDecoder<InputStream, Bitmap>
         MarkEnforcingInputStream invalidatingStream = new MarkEnforcingInputStream(exceptionStream);
         UntrustedCallbacks callbacks = new UntrustedCallbacks(bufferedStream, exceptionStream);
         try {
+            //1. 将InputStream转成Bitmap
             return downsampler.decode(invalidatingStream, width, height, options, callbacks);
         } finally {
             exceptionStream.release();

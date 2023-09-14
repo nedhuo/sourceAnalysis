@@ -71,6 +71,11 @@ final class ActiveResources {
     }
   }
 
+  /**
+   * 保存资源到活动缓存
+   * @param key
+   * @param resource
+   */
   synchronized void activate(Key key, EngineResource<?> resource) {
     ResourceWeakReference toPut =
         new ResourceWeakReference(
