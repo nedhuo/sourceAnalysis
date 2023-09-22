@@ -222,7 +222,7 @@ class DecodeJob<R>
     }
 
     /**
-     *
+     * Engine 中 waitForExistingOrStartNewJob方法调过来的
      */
     // We need to rethrow only CallbackException, but not other types of Throwables.
     @SuppressWarnings("PMD.AvoidRethrowingException")

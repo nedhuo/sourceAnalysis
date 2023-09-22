@@ -22,6 +22,7 @@ import java.util.Set;
  * {@link LruPoolStrategy} to bucket {@link Bitmap}s
  * and then uses an LRU eviction policy to evict {@link Bitmap}s from the least
  * recently used bucket in order to keep the pool below a given maximum size limit.
+ * 基于Lru缓存策略的图片缓存池
  */
 public class LruBitmapPool implements BitmapPool {
   private static final String TAG = "LruBitmapPool";

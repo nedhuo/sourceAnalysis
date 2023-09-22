@@ -269,6 +269,7 @@ public final class SingleRequest<R> implements Request, SizeReadyCallback, Resou
 
             status = Status.WAITING_FOR_SIZE;
             if (Util.isValidDimensions(overrideWidth, overrideHeight)) {
+                //加载图片入口
                 onSizeReady(overrideWidth, overrideHeight);
             } else {
                 target.getSize(this);

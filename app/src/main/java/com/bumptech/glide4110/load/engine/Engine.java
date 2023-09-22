@@ -37,20 +37,20 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
     private static final boolean VERBOSE_IS_LOGGABLE = Log.isLoggable(TAG, Log.VERBOSE);
     private final Jobs jobs;
     private final com.bumptech.glide4110.load.engine.EngineKeyFactory keyFactory;
-    private final com.bumptech.glide4110.load.engine.cache.MemoryCache cache;
+    private final MemoryCache cache;
     private final EngineJobFactory engineJobFactory;
     private final com.bumptech.glide4110.load.engine.ResourceRecycler resourceRecycler;
     private final LazyDiskCacheProvider diskCacheProvider;
     private final DecodeJobFactory decodeJobFactory;
-    private final com.bumptech.glide4110.load.engine.ActiveResources activeResources;
+    private final ActiveResources activeResources;
 
     public Engine(
-            com.bumptech.glide4110.load.engine.cache.MemoryCache memoryCache,
+            MemoryCache memoryCache,
             com.bumptech.glide4110.load.engine.cache.DiskCache.Factory diskCacheFactory,
-            com.bumptech.glide4110.load.engine.executor.GlideExecutor diskCacheExecutor,
-            com.bumptech.glide4110.load.engine.executor.GlideExecutor sourceExecutor,
-            com.bumptech.glide4110.load.engine.executor.GlideExecutor sourceUnlimitedExecutor,
-            com.bumptech.glide4110.load.engine.executor.GlideExecutor animationExecutor,
+            GlideExecutor diskCacheExecutor,
+            GlideExecutor sourceExecutor,
+            GlideExecutor sourceUnlimitedExecutor,
+            GlideExecutor animationExecutor,
             boolean isActiveResourceRetentionAllowed) {
         this(
                 memoryCache,
@@ -71,14 +71,14 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
     @VisibleForTesting
     Engine(
             MemoryCache cache,
-            com.bumptech.glide4110.load.engine.cache.DiskCache.Factory diskCacheFactory,
-            com.bumptech.glide4110.load.engine.executor.GlideExecutor diskCacheExecutor,
-            com.bumptech.glide4110.load.engine.executor.GlideExecutor sourceExecutor,
-            com.bumptech.glide4110.load.engine.executor.GlideExecutor sourceUnlimitedExecutor,
-            com.bumptech.glide4110.load.engine.executor.GlideExecutor animationExecutor,
+            DiskCache.Factory diskCacheFactory,
+            GlideExecutor diskCacheExecutor,
+            GlideExecutor sourceExecutor,
+            GlideExecutor sourceUnlimitedExecutor,
+            GlideExecutor animationExecutor,
             Jobs jobs,
             com.bumptech.glide4110.load.engine.EngineKeyFactory keyFactory,
-            com.bumptech.glide4110.load.engine.ActiveResources activeResources,
+            ActiveResources activeResources,
             EngineJobFactory engineJobFactory,
             DecodeJobFactory decodeJobFactory,
             com.bumptech.glide4110.load.engine.ResourceRecycler resourceRecycler,
@@ -86,14 +86,15 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
         this.cache = cache;
         this.diskCacheProvider = new LazyDiskCacheProvider(diskCacheFactory);
 
+        //1. 创建活动缓存
         if (activeResources == null) {
-            activeResources = new com.bumptech.glide4110.load.engine.ActiveResources(isActiveResourceRetentionAllowed);
+            activeResources = new ActiveResources(isActiveResourceRetentionAllowed);
         }
         this.activeResources = activeResources;
         activeResources.setListener(this);
 
         if (keyFactory == null) {
-            keyFactory = new com.bumptech.glide4110.load.engine.EngineKeyFactory();
+            keyFactory = new EngineKeyFactory();
         }
         this.keyFactory = keyFactory;
 
@@ -120,7 +121,7 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
         this.decodeJobFactory = decodeJobFactory;
 
         if (resourceRecycler == null) {
-            resourceRecycler = new com.bumptech.glide4110.load.engine.ResourceRecycler();
+            resourceRecycler = new ResourceRecycler();
         }
         this.resourceRecycler = resourceRecycler;
 
@@ -177,7 +178,7 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
         long startTime = VERBOSE_IS_LOGGABLE ? LogTime.getLogTime() : 0;
 
         //1. 通过签名 宽 高等信息构建一个key（用户从活动缓存 内存缓存查找图片）
-        com.bumptech.glide4110.load.engine.EngineKey key =
+        EngineKey key =
                 keyFactory.buildKey(
                         model,
                         signature,
@@ -188,12 +189,12 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
                         transcodeClass,
                         options);
 
-        com.bumptech.glide4110.load.engine.EngineResource<?> memoryResource;
+        EngineResource<?> memoryResource;
         synchronized (this) {
             //2. 查找内存缓存 活动缓存
             memoryResource = loadFromMemory(key, isMemoryCacheable, startTime);
 
-            //3. 缓存为空 创建新的任务
+            //3. 内存缓存为空 创建新的任务
             if (memoryResource == null) {
                 return waitForExistingOrStartNewJob(
                         glideContext,
@@ -228,15 +229,15 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
     }
 
     private <R> LoadStatus waitForExistingOrStartNewJob(
-            com.bumptech.glide4110.GlideContext glideContext,
+            GlideContext glideContext,
             Object model,
             Key signature,
             int width,
             int height,
             Class<?> resourceClass,
             Class<R> transcodeClass,
-            com.bumptech.glide4110.Priority priority,
-            com.bumptech.glide4110.load.engine.DiskCacheStrategy diskCacheStrategy,
+            Priority priority,
+            DiskCacheStrategy diskCacheStrategy,
             Map<Class<?>, Transformation<?>> transformations,
             boolean isTransformationRequired,
             boolean isScaleOnlyOrNoTransform,
@@ -245,7 +246,7 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
             boolean useUnlimitedSourceExecutorPool,
             boolean useAnimationPool,
             boolean onlyRetrieveFromCache,
-            com.bumptech.glide4110.request.ResourceCallback cb,
+            ResourceCallback cb,
             Executor callbackExecutor,
             EngineKey key,
             long startTime) {
@@ -307,7 +308,8 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
         if (!isMemoryCacheable) {
             return null;
         }
-        //1. 从活动缓存中查找
+
+        //1. 从活动缓存中获取资源
         EngineResource<?> active = loadFromActiveResources(key);
         if (active != null) {
             if (VERBOSE_IS_LOGGABLE) {
@@ -315,6 +317,7 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
             }
             return active;
         }
+
         //2. 从内存缓存中查找
         EngineResource<?> cached = loadFromCache(key);
         if (cached != null) {
@@ -324,6 +327,7 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
             return cached;
         }
 
+        //如果内存缓存未获取到 返回null
         return null;
     }
 
@@ -341,9 +345,16 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
         return active;
     }
 
+    /**
+     * 从内存缓存中获取对应资源
+     * @param key
+     * @return
+     */
     private EngineResource<?> loadFromCache(Key key) {
+        //1.
         EngineResource<?> cached = getEngineResourceFromCache(key);
         if (cached != null) {
+            //2. 资源的引用计数+1 将资源保存进活动缓存
             cached.acquire();
             activeResources.activate(key, cached);
         }
@@ -351,6 +362,7 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
     }
 
     private EngineResource<?> getEngineResourceFromCache(Key key) {
+        //1. 再从Lru缓存中获取资源时会直接从Lru资源中移除
         Resource<?> cached = cache.remove(key);
 
         final EngineResource<?> result;
@@ -427,7 +439,7 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
      */
     public class LoadStatus {
         private final EngineJob<?> engineJob;
-        private final com.bumptech.glide4110.request.ResourceCallback cb;
+        private final ResourceCallback cb;
 
         LoadStatus(ResourceCallback cb, EngineJob<?> engineJob) {
             this.cb = cb;
@@ -448,7 +460,7 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
     private static class LazyDiskCacheProvider implements DecodeJob.DiskCacheProvider {
 
         private final DiskCache.Factory factory;
-        private volatile com.bumptech.glide4110.load.engine.cache.DiskCache diskCache;
+        private volatile DiskCache diskCache;
 
         LazyDiskCacheProvider(DiskCache.Factory factory) {
             this.factory = factory;

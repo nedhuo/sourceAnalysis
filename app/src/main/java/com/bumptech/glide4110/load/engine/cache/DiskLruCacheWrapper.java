@@ -16,6 +16,8 @@ import java.io.IOException;
  * The default DiskCache implementation. There must be no more than one active instance for a given
  * directory at a time.
  *
+ * 磁盘缓存的默认实现 Glide三级缓存之磁盘缓存
+ *
  * @see #get(File, long)
  */
 public class DiskLruCacheWrapper implements DiskCache {
@@ -25,10 +27,10 @@ public class DiskLruCacheWrapper implements DiskCache {
   private static final int VALUE_COUNT = 1;
   private static DiskLruCacheWrapper wrapper;
 
-  private final com.bumptech.glide4110.load.engine.cache.SafeKeyGenerator safeKeyGenerator;
+  private final SafeKeyGenerator safeKeyGenerator;
   private final File directory;
   private final long maxSize;
-  private final com.bumptech.glide4110.load.engine.cache.DiskCacheWriteLocker writeLocker = new com.bumptech.glide4110.load.engine.cache.DiskCacheWriteLocker();
+  private final DiskCacheWriteLocker writeLocker = new DiskCacheWriteLocker();
   private DiskLruCache diskLruCache;
 
   /**

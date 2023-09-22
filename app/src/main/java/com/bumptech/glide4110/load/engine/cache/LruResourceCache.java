@@ -11,7 +11,7 @@ import com.bumptech.glide4110.util.LruCache;
 
 /**
  * An LRU in memory cache for {@link Resource}s.
- * Lru内存缓存
+ * 三大缓存之 ——Lru内存缓存
  */
 public class LruResourceCache extends LruCache<Key, Resource<?>> implements MemoryCache {
     private ResourceRemovedListener listener;

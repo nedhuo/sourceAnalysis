@@ -528,7 +528,7 @@ public final class GlideBuilder {
             connectivityMonitorFactory = new DefaultConnectivityMonitorFactory();
         }
 
-        //创建Bitmap图片池
+        //创建Lru图片缓存池
         if (bitmapPool == null) {
             int size = memorySizeCalculator.getBitmapPoolSize();
             if (size > 0) {
@@ -543,12 +543,12 @@ public final class GlideBuilder {
             arrayPool = new LruArrayPool(memorySizeCalculator.getArrayPoolSizeInBytes());
         }
 
-        //Lru缓存
+        //Lru内存缓存
         if (memoryCache == null) {
             memoryCache = new LruResourceCache(memorySizeCalculator.getMemoryCacheSize());
         }
 
-        //磁盘缓存
+        //磁盘缓存Factory 核心缓存类是DiskLruCacheWrapper
         if (diskCacheFactory == null) {
             diskCacheFactory = new InternalCacheDiskCacheFactory(context);
         }
@@ -570,6 +570,7 @@ public final class GlideBuilder {
         } else {
             defaultRequestListeners = Collections.unmodifiableList(defaultRequestListeners);
         }
+
         //创建RequestManagerRetriever
         RequestManagerRetriever requestManagerRetriever =
                 new RequestManagerRetriever(requestManagerFactory);

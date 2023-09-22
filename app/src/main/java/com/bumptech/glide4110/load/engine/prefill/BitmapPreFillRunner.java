@@ -52,7 +52,7 @@ final class BitmapPreFillRunner implements Runnable {
   static final long MAX_BACKOFF_MS = TimeUnit.SECONDS.toMillis(1);
 
   private final BitmapPool bitmapPool;
-  private final com.bumptech.glide4110.load.engine.cache.MemoryCache memoryCache;
+  private final MemoryCache memoryCache;
   private final PreFillQueue toPrefill;
   private final Clock clock;
   private final Set<PreFillType> seenTypes = new HashSet<>();
@@ -64,7 +64,7 @@ final class BitmapPreFillRunner implements Runnable {
   // Public API.
   @SuppressWarnings("WeakerAccess")
   public BitmapPreFillRunner(
-          BitmapPool bitmapPool, com.bumptech.glide4110.load.engine.cache.MemoryCache memoryCache, PreFillQueue allocationOrder) {
+          BitmapPool bitmapPool, MemoryCache memoryCache, PreFillQueue allocationOrder) {
     this(
         bitmapPool,
         memoryCache,
