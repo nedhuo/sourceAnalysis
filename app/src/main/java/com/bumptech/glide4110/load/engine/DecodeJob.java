@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 负责从缓存数据或原始数据源解码资源并应用转换和转码的类
  * A class responsible for decoding resources either from cached data or from the original source
  * and applying transformations and transcodes.
  *
@@ -220,6 +221,9 @@ class DecodeJob<R>
         }
     }
 
+    /**
+     *
+     */
     // We need to rethrow only CallbackException, but not other types of Throwables.
     @SuppressWarnings("PMD.AvoidRethrowingException")
     @Override
@@ -236,6 +240,7 @@ class DecodeJob<R>
                 notifyFailed();
                 return;
             }
+            //1. 核心runWrapped
             runWrapped();
         } catch (CallbackException e) {
             // If a callback not controlled by Glide throws an exception, we should avoid the Glide
@@ -273,6 +278,9 @@ class DecodeJob<R>
         }
     }
 
+    /**
+     * getNextGenerator()
+     */
     private void runWrapped() {
         switch (runReason) {
             case INITIALIZE:
@@ -292,6 +300,9 @@ class DecodeJob<R>
         }
     }
 
+    /**
+     * 获取下一个资源获取对象
+     */
     private DataFetcherGenerator getNextGenerator() {
         switch (stage) {
             case RESOURCE_CACHE:
@@ -308,6 +319,9 @@ class DecodeJob<R>
         }
     }
 
+    /**
+     *
+     */
     private void runGenerators() {
         currentThread = Thread.currentThread();
         startFetchTime = LogTime.getLogTime();

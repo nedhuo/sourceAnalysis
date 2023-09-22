@@ -231,14 +231,17 @@ final class DecodeHelper<Transcode> {
       //noinspection ForLoopReplaceableByForEach to improve perf
       for (int i = 0, size = loadData.size(); i < size; i++) {
         ModelLoader.LoadData<?> data = loadData.get(i);
+        //保存资源Key
         if (!cacheKeys.contains(data.sourceKey)) {
           cacheKeys.add(data.sourceKey);
         }
+
         for (int j = 0; j < data.alternateKeys.size(); j++) {
           if (!cacheKeys.contains(data.alternateKeys.get(j))) {
             cacheKeys.add(data.alternateKeys.get(j));
           }
         }
+
       }
     }
     return cacheKeys;

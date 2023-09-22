@@ -127,7 +127,7 @@ public class Glide implements ComponentCallbacks2 {
     private final ArrayPool arrayPool;
     private final com.bumptech.glide4110.manager.RequestManagerRetriever requestManagerRetriever;
     private final com.bumptech.glide4110.manager.ConnectivityMonitorFactory connectivityMonitorFactory;
-    private final List<com.bumptech.glide4110.RequestManager> managers = new ArrayList<>();
+    private final List<RequestManager> managers = new ArrayList<>();
     private final RequestOptionsFactory defaultRequestOptionsFactory;
     private com.bumptech.glide4110.MemoryCategory memoryCategory = com.bumptech.glide4110.MemoryCategory.NORMAL;
 
@@ -697,7 +697,7 @@ public class Glide implements ComponentCallbacks2 {
         Util.assertMainThread();
         // Request managers need to be trimmed before the caches and pools, in order for the latter to
         // have the most benefit.
-        for (com.bumptech.glide4110.RequestManager manager : managers) {
+        for (RequestManager manager : managers) {
             manager.onTrimMemory(level);
         }
         // memory cache needs to be trimmed before bitmap pool to trim re-pooled Bitmaps too. See #687.
@@ -786,7 +786,7 @@ public class Glide implements ComponentCallbacks2 {
      * @see #with(FragmentActivity)
      */
     @NonNull
-    public static com.bumptech.glide4110.RequestManager with(@NonNull Context context) {
+    public static RequestManager with(@NonNull Context context) {
         return getRetriever(context).get(context);
     }
 
@@ -798,11 +798,12 @@ public class Glide implements ComponentCallbacks2 {
      * @return A RequestManager for the given activity that can be used to start a load.
      */
     @NonNull
-    public static com.bumptech.glide4110.RequestManager with(@NonNull Activity activity) {
+    public static RequestManager with(@NonNull Activity activity) {
         return getRetriever(activity).get(activity);
     }
 
     /**
+     * 1. 进入Glide.with()流程
      * Begin a load with Glide that will tied to the give {@link
      * FragmentActivity}'s lifecycle and that uses the given {@link
      * FragmentActivity}'s default options.
@@ -811,7 +812,7 @@ public class Glide implements ComponentCallbacks2 {
      * @return A RequestManager for the given FragmentActivity that can be used to start a load.
      */
     @NonNull
-    public static com.bumptech.glide4110.RequestManager with(@NonNull FragmentActivity activity) {
+    public static RequestManager with(@NonNull FragmentActivity activity) {
         return getRetriever(activity).get(activity);
     }
 
@@ -823,7 +824,7 @@ public class Glide implements ComponentCallbacks2 {
      * @return A RequestManager for the given Fragment that can be used to start a load.
      */
     @NonNull
-    public static com.bumptech.glide4110.RequestManager with(@NonNull Fragment fragment) {
+    public static RequestManager with(@NonNull Fragment fragment) {
         return getRetriever(fragment.getContext()).get(fragment);
     }
 
@@ -840,7 +841,7 @@ public class Glide implements ComponentCallbacks2 {
     @SuppressWarnings("deprecation")
     @Deprecated
     @NonNull
-    public static com.bumptech.glide4110.RequestManager with(@NonNull android.app.Fragment fragment) {
+    public static RequestManager with(@NonNull android.app.Fragment fragment) {
         return getRetriever(fragment.getActivity()).get(fragment);
     }
 
@@ -870,7 +871,7 @@ public class Glide implements ComponentCallbacks2 {
      * @return A RequestManager that can be used to start a load.
      */
     @NonNull
-    public static com.bumptech.glide4110.RequestManager with(@NonNull View view) {
+    public static RequestManager with(@NonNull View view) {
         return getRetriever(view.getContext()).get(view);
     }
 
@@ -881,7 +882,7 @@ public class Glide implements ComponentCallbacks2 {
 
     boolean removeFromManagers(@NonNull Target<?> target) {
         synchronized (managers) {
-            for (com.bumptech.glide4110.RequestManager requestManager : managers) {
+            for (RequestManager requestManager : managers) {
                 if (requestManager.untrack(target)) {
                     return true;
                 }
@@ -891,7 +892,7 @@ public class Glide implements ComponentCallbacks2 {
         return false;
     }
 
-    void registerRequestManager(com.bumptech.glide4110.RequestManager requestManager) {
+    void registerRequestManager(RequestManager requestManager) {
         synchronized (managers) {
             if (managers.contains(requestManager)) {
                 throw new IllegalStateException("Cannot register already registered manager");

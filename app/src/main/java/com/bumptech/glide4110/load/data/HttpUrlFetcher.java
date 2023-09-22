@@ -49,6 +49,11 @@ public class HttpUrlFetcher implements DataFetcher<InputStream> {
     this.connectionFactory = connectionFactory;
   }
 
+  /**
+   * 真正通过网络加载图片的地方
+   * @param priority The priority with which the request should be completed.
+   * @param callback The callback to use when the request is complete
+   */
   @Override
   public void loadData(
       @NonNull Priority priority, @NonNull DataCallback<? super InputStream> callback) {
