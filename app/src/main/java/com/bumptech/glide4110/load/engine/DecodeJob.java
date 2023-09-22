@@ -458,7 +458,7 @@ class DecodeJob<R>
         }
         Resource<R> resource = null;
         try {
-            //1.
+            //1. 解析数据
             resource = decodeFromData(currentFetcher, currentData, currentDataSource);
         } catch (GlideException e) {
             e.setLoggingDetails(currentAttemptingKey, currentDataSource);

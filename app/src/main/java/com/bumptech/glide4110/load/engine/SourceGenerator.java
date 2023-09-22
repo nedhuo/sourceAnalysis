@@ -99,7 +99,7 @@ class SourceGenerator implements DataFetcherGenerator, DataFetcherGenerator.Fetc
 
     // We want reference equality explicitly to make sure we ignore results from old requests.
     @SuppressWarnings({"PMD.CompareObjectsWithEquals", "WeakerAccess"})
-    @com.bumptech.glide4110.util.Synthetic
+    @Synthetic
     boolean isCurrentRequest(ModelLoader.LoadData<?> requestLoadData) {
         ModelLoader.LoadData<?> currentLoadData = loadData;
         return currentLoadData != null && currentLoadData == requestLoadData;
@@ -158,7 +158,7 @@ class SourceGenerator implements DataFetcherGenerator, DataFetcherGenerator.Fetc
     }
 
     @SuppressWarnings("WeakerAccess")
-    @com.bumptech.glide4110.util.Synthetic
+    @Synthetic
     void onDataReadyInternal(ModelLoader.LoadData<?> loadData, Object data) {
         DiskCacheStrategy diskCacheStrategy = helper.getDiskCacheStrategy();
         if (data != null && diskCacheStrategy.isDataCacheable(loadData.fetcher.getDataSource())) {

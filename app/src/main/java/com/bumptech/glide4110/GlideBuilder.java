@@ -538,7 +538,6 @@ public final class GlideBuilder {
             }
         }
 
-        //活动缓存
         if (arrayPool == null) {
             arrayPool = new LruArrayPool(memorySizeCalculator.getArrayPoolSizeInBytes());
         }

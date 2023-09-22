@@ -83,10 +83,12 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
             DecodeJobFactory decodeJobFactory,
             com.bumptech.glide4110.load.engine.ResourceRecycler resourceRecycler,
             boolean isActiveResourceRetentionAllowed) {
+        //1. Lru内存缓存
         this.cache = cache;
+        //2. 磁盘缓存Provider
         this.diskCacheProvider = new LazyDiskCacheProvider(diskCacheFactory);
 
-        //1. 创建活动缓存
+        //3. 创建活动缓存
         if (activeResources == null) {
             activeResources = new ActiveResources(isActiveResourceRetentionAllowed);
         }
@@ -387,6 +389,12 @@ public class Engine implements EngineJobListener, MemoryCache.ResourceRemovedLis
         }
     }
 
+    /**
+     * 在EngineJob的 notifyCallbacksOfResult方法中通过EngineJobListener接口将资源回调出来
+     * @param engineJob
+     * @param key
+     * @param resource
+     */
     @SuppressWarnings("unchecked")
     @Override
     public synchronized void onEngineJobComplete(
